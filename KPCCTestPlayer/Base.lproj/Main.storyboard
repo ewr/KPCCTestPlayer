@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6211" systemVersion="14A298i" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6254" systemVersion="14C94b" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BYZ-38-t0r">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6204"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6247"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController id="BYZ-38-t0r" customClass="ViewController" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="KPCCTestPlayer" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="y3c-jy-aDJ"/>
                         <viewControllerLayoutGuide type="bottom" id="wfy-db-euE"/>
@@ -15,8 +16,104 @@
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <slider opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="fug-JQ-bp1" userLabel="ProgressSlider">
+                                <rect key="frame" x="92" y="140" width="417" height="31"/>
+                            </slider>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yWb-Gk-fee" userLabel="PlayPause">
+                                <rect key="frame" x="262" y="444" width="77" height="30"/>
+                                <state key="normal" title="Play/Pause">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                            </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="--:--" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fHW-UR-Qx1" userLabel="CurrentPlayerDate">
+                                <rect key="frame" x="175" y="89" width="250" height="21"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="21" id="04m-Yj-3oD"/>
+                                    <constraint firstAttribute="width" constant="250" id="8Zd-sR-ikk"/>
+                                    <constraint firstAttribute="width" constant="250" id="BOD-if-3sp"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                                <variation key="default">
+                                    <mask key="constraints">
+                                        <exclude reference="04m-Yj-3oD"/>
+                                        <exclude reference="8Zd-sR-ikk"/>
+                                    </mask>
+                                </variation>
+                                <variation key="heightClass=regular">
+                                    <mask key="constraints">
+                                        <include reference="04m-Yj-3oD"/>
+                                        <include reference="8Zd-sR-ikk"/>
+                                        <exclude reference="BOD-if-3sp"/>
+                                    </mask>
+                                </variation>
+                            </label>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="yWb-Gk-fee" firstAttribute="centerX" secondItem="fHW-UR-Qx1" secondAttribute="centerX" id="0Vw-he-bN3"/>
+                            <constraint firstItem="fHW-UR-Qx1" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="69" id="2FR-2f-fTN"/>
+                            <constraint firstAttribute="centerX" secondItem="fug-JQ-bp1" secondAttribute="centerX" id="5IB-h0-p2A"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="fHW-UR-Qx1" secondAttribute="trailing" constant="159" id="Mu3-0m-1Y3"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="yWb-Gk-fee" secondAttribute="bottom" constant="326" id="Sis-63-5Mf"/>
+                            <constraint firstItem="yWb-Gk-fee" firstAttribute="centerX" secondItem="fug-JQ-bp1" secondAttribute="centerX" id="Z0A-BB-grJ"/>
+                            <constraint firstItem="fHW-UR-Qx1" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="159" id="Z8P-J6-UEH"/>
+                            <constraint firstItem="fHW-UR-Qx1" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="dz5-wS-g1C"/>
+                            <constraint firstAttribute="centerX" secondItem="fHW-UR-Qx1" secondAttribute="centerX" id="mR7-lY-rki"/>
+                            <constraint firstItem="yWb-Gk-fee" firstAttribute="centerX" secondItem="fug-JQ-bp1" secondAttribute="centerX" id="pCE-x8-eYx"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="yWb-Gk-fee" secondAttribute="bottom" constant="326" id="sSQ-T9-O39"/>
+                            <constraint firstItem="fug-JQ-bp1" firstAttribute="top" secondItem="fHW-UR-Qx1" secondAttribute="bottom" constant="30" id="wUe-87-9Dl"/>
+                            <constraint firstItem="fug-JQ-bp1" firstAttribute="centerX" secondItem="fHW-UR-Qx1" secondAttribute="centerX" id="xLS-Zs-D6u"/>
+                            <constraint firstItem="fug-JQ-bp1" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="78" id="xkU-P1-xem"/>
+                            <constraint firstItem="fHW-UR-Qx1" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="topMargin" constant="89" id="zgr-T7-8kC"/>
+                        </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="5IB-h0-p2A"/>
+                                <exclude reference="wUe-87-9Dl"/>
+                                <exclude reference="xLS-Zs-D6u"/>
+                                <exclude reference="xkU-P1-xem"/>
+                                <exclude reference="2FR-2f-fTN"/>
+                                <exclude reference="dz5-wS-g1C"/>
+                                <exclude reference="mR7-lY-rki"/>
+                                <exclude reference="0Vw-he-bN3"/>
+                                <exclude reference="Z0A-BB-grJ"/>
+                                <exclude reference="pCE-x8-eYx"/>
+                                <exclude reference="Sis-63-5Mf"/>
+                                <exclude reference="sSQ-T9-O39"/>
+                            </mask>
+                        </variation>
+                        <variation key="heightClass=regular">
+                            <mask key="constraints">
+                                <include reference="wUe-87-9Dl"/>
+                                <include reference="xLS-Zs-D6u"/>
+                                <include reference="xkU-P1-xem"/>
+                                <include reference="2FR-2f-fTN"/>
+                                <exclude reference="Mu3-0m-1Y3"/>
+                                <exclude reference="Z8P-J6-UEH"/>
+                                <include reference="dz5-wS-g1C"/>
+                                <exclude reference="zgr-T7-8kC"/>
+                                <include reference="Z0A-BB-grJ"/>
+                                <include reference="Sis-63-5Mf"/>
+                            </mask>
+                        </variation>
+                        <variation key="heightClass=regular-widthClass=regular">
+                            <mask key="constraints">
+                                <include reference="5IB-h0-p2A"/>
+                                <include reference="mR7-lY-rki"/>
+                                <include reference="0Vw-he-bN3"/>
+                                <include reference="pCE-x8-eYx"/>
+                                <include reference="sSQ-T9-O39"/>
+                            </mask>
+                        </variation>
                     </view>
+                    <connections>
+                        <outlet property="playPauseButton" destination="yWb-Gk-fee" id="Vmz-fN-5fN"/>
+                        <outlet property="progressSlider" destination="fug-JQ-bp1" id="WPq-t5-zgt"/>
+                        <outlet property="timeDisplay" destination="fHW-UR-Qx1" id="6sO-Zz-OEe"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>

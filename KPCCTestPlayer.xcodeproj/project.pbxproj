@@ -14,6 +14,8 @@
 		0714CAEB1A5C7992007EB486 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0714CAEA1A5C7992007EB486 /* Images.xcassets */; };
 		0714CAEE1A5C7992007EB486 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0714CAEC1A5C7992007EB486 /* LaunchScreen.xib */; };
 		0714CAFA1A5C7992007EB486 /* KPCCTestPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0714CAF91A5C7992007EB486 /* KPCCTestPlayerTests.swift */; };
+		078A5D971A640FE100A67C41 /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 078A5D961A640FE100A67C41 /* AudioPlayer.swift */; };
+		078A5D991A64120E00A67C41 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 078A5D981A64120E00A67C41 /* AVFoundation.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,6 +40,8 @@
 		0714CAF31A5C7992007EB486 /* KPCCTestPlayerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KPCCTestPlayerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0714CAF81A5C7992007EB486 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0714CAF91A5C7992007EB486 /* KPCCTestPlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KPCCTestPlayerTests.swift; sourceTree = "<group>"; };
+		078A5D961A640FE100A67C41 /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
+		078A5D981A64120E00A67C41 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,6 +49,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				078A5D991A64120E00A67C41 /* AVFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -61,6 +66,7 @@
 		0714CAD21A5C7992007EB486 = {
 			isa = PBXGroup;
 			children = (
+				078A5D981A64120E00A67C41 /* AVFoundation.framework */,
 				0714CADD1A5C7992007EB486 /* KPCCTestPlayer */,
 				0714CAF61A5C7992007EB486 /* KPCCTestPlayerTests */,
 				0714CADC1A5C7992007EB486 /* Products */,
@@ -86,6 +92,7 @@
 				0714CAEC1A5C7992007EB486 /* LaunchScreen.xib */,
 				0714CAE21A5C7992007EB486 /* KPCCTestPlayer.xcdatamodeld */,
 				0714CADE1A5C7992007EB486 /* Supporting Files */,
+				078A5D961A640FE100A67C41 /* AudioPlayer.swift */,
 			);
 			path = KPCCTestPlayer;
 			sourceTree = "<group>";
@@ -218,6 +225,7 @@
 				0714CAE61A5C7992007EB486 /* ViewController.swift in Sources */,
 				0714CAE11A5C7992007EB486 /* AppDelegate.swift in Sources */,
 				0714CAE41A5C7992007EB486 /* KPCCTestPlayer.xcdatamodeld in Sources */,
+				078A5D971A640FE100A67C41 /* AudioPlayer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -411,6 +419,7 @@
 				0714CAFF1A5C7992007EB486 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		0714CB001A5C7992007EB486 /* Build configuration list for PBXNativeTarget "KPCCTestPlayerTests" */ = {
 			isa = XCConfigurationList;
@@ -419,6 +428,7 @@
 				0714CB021A5C7992007EB486 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 
