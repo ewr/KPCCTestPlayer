@@ -21,6 +21,8 @@ class AudioPlayer {
     
     let STREAM_URL = "http://streammachine-hls001.scprdev.org/sg/kpcc-aac.m3u8"
     
+    let NORMAL_REWIND = 4 * 60 * 60
+    
     var _player: AVPlayer?
     
     var playing: Bool
@@ -36,6 +38,12 @@ class AudioPlayer {
     }
     
     var _observers: [(StreamDates) -> Void] = []
+    var _showObservers: [(Schedule.ScheduleInstance?) -> Void] = []
+    
+    var _currentShow: Schedule.ScheduleInstance? = nil
+    var _checkingDate: NSDate?
+    
+    //----------
     
     init() {
         self.playing = false
@@ -43,6 +51,8 @@ class AudioPlayer {
         self._dateFormat = NSDateFormatter()
         self._dateFormat.dateFormat = "hh:mm:ss a"
     }
+    
+    //----------
     
     func getPlayer() -> AVPlayer {
         if (self._player == nil) {
@@ -81,6 +91,8 @@ class AudioPlayer {
                     }
                     
                     NSLog("curDate is %@", self._dateFormat.stringFromDate(curDate))
+                    
+                    self._checkForNewShow(curDate, from_seek:false)
                 }
             )
         }
@@ -93,6 +105,12 @@ class AudioPlayer {
     
     func observeTime(observer:(StreamDates) -> Void) -> Void {
         self._observers.append(observer)
+    }
+    
+    //----------
+    
+    func onShowChange(observer:(Schedule.ScheduleInstance?) -> Void) -> Void {
+        self._showObservers.append(observer)
     }
     
     //----------
@@ -141,9 +159,52 @@ class AudioPlayer {
         p.currentItem.seekToTime(seek_time, completionHandler: {(finished:Bool) -> Void in
             if finished {
                 NSLog("seekToPercent landed from %2f", percent)
+                
             }
         })
         
         return true
+    }
+    
+    //----------
+    
+    func _checkForNewShow(date:NSDate,from_seek:Bool = false) -> Void {
+        if self._currentShow != nil && (
+            (date.timeIntervalSinceReferenceDate >= self._currentShow!.starts_at.timeIntervalSinceReferenceDate)
+            && (date.timeIntervalSinceReferenceDate < self._currentShow!.ends_at.timeIntervalSinceReferenceDate)
+        ) {
+            // we're still in our current show... no change
+            return
+        }
+        
+        // we either don't have a current show, or we're no longer inside it
+        
+        if self._checkingDate != nil && !from_seek {
+            // we don't interrupt for normal ticks
+            return
+        }
+        
+        // we should fetch for our new time
+        self._checkingDate = date
+        
+        Schedule.sharedInstance.at(date) { show in
+            // make sure a different fetch didn't fire while we were waiting
+            if self._checkingDate == date {
+                self._currentShow = show
+                self._checkingDate = nil
+                
+                if show != nil {
+                    NSLog("Current show is %@",self._currentShow!.title)
+                } else {
+                    NSLog("_checkForNewShow failed to get show")
+                }
+                
+                // update any observers
+                for o in self._showObservers {
+                    o(show)
+                }
+            }
+        }
+        
     }
 }

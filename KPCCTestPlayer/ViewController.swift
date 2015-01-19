@@ -12,6 +12,9 @@ class ViewController: UIViewController {
     @IBOutlet weak var timeDisplay: UILabel!
     @IBOutlet weak var playPauseButton: UIButton!
     @IBOutlet weak var progressSlider: UISlider!
+    @IBOutlet weak var scheduleTable: UITableView!
+    @IBOutlet weak var showLabel: UILabel!
+    @IBOutlet weak var showTimes: UILabel!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,6 +25,11 @@ class ViewController: UIViewController {
         
         var formatter = NSDateFormatter()
         formatter.dateFormat = "YYYY-MM-DD hh:mm:ss"
+        
+        var _timeF = NSDateFormatter()
+        _timeF.dateFormat = "h:mma"
+        
+        //---
         
         AudioPlayer.sharedInstance.observeTime() { (status:AudioPlayer.StreamDates) -> Void in
             // set current time display
@@ -34,12 +42,22 @@ class ViewController: UIViewController {
                 
                 var percent = position / duration
                 
-                NSLog("setting slider to %2f", Float(percent))
-                
                 self.progressSlider.value = Float(percent)
             }
         }
         
+        //---
+        
+        AudioPlayer.sharedInstance.onShowChange() { show in
+            if show != nil {
+                self.showLabel.text = show!.title
+                self.showTimes.text = _timeF.stringFromDate(show!.starts_at) + " - " + _timeF.stringFromDate(show!.ends_at)
+                
+            } else {
+                self.showLabel.text = "????"
+                self.showTimes.text = ""
+            }
+        }
     }
     
     //----------
