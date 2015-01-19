@@ -37,11 +37,14 @@ class AudioPlayer {
         var maxDate: NSDate?
     }
     
+    var currentDates: StreamDates?
+    
     var _observers: [(StreamDates) -> Void] = []
     var _showObservers: [(Schedule.ScheduleInstance?) -> Void] = []
     
     var _currentShow: Schedule.ScheduleInstance? = nil
     var _checkingDate: NSDate?
+    var _seeking: Bool = false
     
     //----------
     
@@ -67,6 +70,11 @@ class AudioPlayer {
             // observe time every second
             self._player?.addPeriodicTimeObserverForInterval(CMTimeMake(1,1), queue: nil,
                 usingBlock: {(time:CMTime) in
+                    if self._seeking {
+                        // we don't want to update anything mid-seek
+                        return
+                    }
+                    
                     var curDate = self._player!.currentItem.currentDate()
                     
                     var seek_range: CMTimeRange
@@ -85,6 +93,8 @@ class AudioPlayer {
                     }
                     
                     var status = StreamDates(curDate: curDate, minDate: minDate, maxDate: maxDate)
+                    
+                    self.currentDates = status
                     
                     for o in self._observers {
                         o(status)
@@ -136,14 +146,34 @@ class AudioPlayer {
     func stop() -> Bool {
         // FIXME: tear down player
         
+        self.currentDates = nil
+        
         return true
     }
     
     //----------
     
     func seekToDate(date: NSDate) -> Bool {
+        // do we think we can do this?
+        // FIXME: check currentDates if we have them
+        NSLog("seekToDate called for %@",self._dateFormat.stringFromDate(date))
         
-        return false
+        let p = self.getPlayer()
+        
+        self._seeking = true
+        p.currentItem.seekToDate(date, completionHandler: { finished in
+            if finished {
+                NSLog("seekToDate landed at %@", self._dateFormat.stringFromDate(p.currentItem.currentDate()))
+                self._seeking = false
+                // FIXME: Need to see if we landed where we should have. If not, try again
+            } else {
+                NSLog("seekToDate did not finish")
+            }
+            
+
+        })
+        
+        return true
     }
     
     //----------
@@ -155,12 +185,14 @@ class AudioPlayer {
         
         var seek_time = CMTimeAdd( seek_range.start, CMTimeMultiplyByFloat64(seek_range.duration,percent))
         
-        p.currentItem.seekToTime(seek_time)
+        self._seeking = true
         p.currentItem.seekToTime(seek_time, completionHandler: {(finished:Bool) -> Void in
             if finished {
                 NSLog("seekToPercent landed from %2f", percent)
-                
+                self._seeking = false
             }
+            
+
         })
         
         return true

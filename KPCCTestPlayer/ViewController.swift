@@ -15,6 +15,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var scheduleTable: UITableView!
     @IBOutlet weak var showLabel: UILabel!
     @IBOutlet weak var showTimes: UILabel!
+    @IBOutlet weak var rewindButton: UIButton!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,6 +23,7 @@ class ViewController: UIViewController {
         
         self.playPauseButton.addTarget(self, action: "playPauseTapped:", forControlEvents: UIControlEvents.TouchUpInside)
         self.progressSlider.addTarget(self, action: "sliderUpdated:", forControlEvents: UIControlEvents.ValueChanged)
+        self.rewindButton.addTarget(self, action: "rewindTapped:", forControlEvents: UIControlEvents.TouchUpInside)
         
         var formatter = NSDateFormatter()
         formatter.dateFormat = "YYYY-MM-DD hh:mm:ss"
@@ -77,6 +79,16 @@ class ViewController: UIViewController {
         } else {
             NSLog("Playing")
             ap.play()
+        }
+    }
+    
+    //----------
+    
+    func rewindTapped(sender:UIButton!) {
+        let ap = AudioPlayer.sharedInstance
+        
+        if ap._currentShow != nil {
+            ap.seekToDate(ap._currentShow!.soft_starts_at)
         }
     }
     

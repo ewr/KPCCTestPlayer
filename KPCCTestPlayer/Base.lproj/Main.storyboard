@@ -20,7 +20,7 @@
                             <slider opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="fug-JQ-bp1" userLabel="ProgressSlider">
                                 <rect key="frame" x="92" y="140" width="417" height="31"/>
                             </slider>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="--:--" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fHW-UR-Qx1" userLabel="CurrentPlayerDate">
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" misplaced="YES" text="--:--" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fHW-UR-Qx1" userLabel="CurrentPlayerDate">
                                 <rect key="frame" x="175" y="89" width="250" height="21"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="21" id="04m-Yj-3oD"/>
@@ -88,11 +88,21 @@
                                     </mask>
                                 </variation>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ovY-5C-z33">
+                                <rect key="frame" x="-23" y="-15" width="46" height="30"/>
+                                <state key="normal" title="Rewind to Start">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <variation key="heightClass=regular" misplaced="YES">
+                                    <rect key="frame" x="216" y="623" width="169" height="30"/>
+                                </variation>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstAttribute="trailingMargin" secondItem="fug-JQ-bp1" secondAttribute="trailing" constant="28" id="0g8-Lh-dqC"/>
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="yWb-Gk-fee" secondAttribute="bottom" constant="63" id="CaP-0z-mvi"/>
+                            <constraint firstItem="yWb-Gk-fee" firstAttribute="top" secondItem="ovY-5C-z33" secondAttribute="bottom" constant="54" id="HWb-f2-mUH"/>
                             <constraint firstItem="fug-JQ-bp1" firstAttribute="width" secondItem="K1T-D3-CMK" secondAttribute="width" id="S92-H5-E5F"/>
                             <constraint firstItem="fug-JQ-bp1" firstAttribute="centerX" secondItem="K1T-D3-CMK" secondAttribute="centerX" id="Teg-xo-vAe"/>
                             <constraint firstItem="fug-JQ-bp1" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="120" id="bYb-nU-LE8"/>
@@ -104,11 +114,13 @@
                             <constraint firstItem="fHW-UR-Qx1" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="69" id="i0T-90-nBJ"/>
                             <constraint firstItem="fug-JQ-bp1" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="24" id="pAL-eU-yqk"/>
                             <constraint firstAttribute="centerX" secondItem="yWb-Gk-fee" secondAttribute="centerX" constant="-0.5" id="qka-yx-2Sl"/>
+                            <constraint firstItem="yWb-Gk-fee" firstAttribute="centerX" secondItem="ovY-5C-z33" secondAttribute="centerX" id="sFe-md-1QB"/>
                         </constraints>
                         <variation key="default">
                             <mask key="subviews">
                                 <exclude reference="K1T-D3-CMK"/>
                                 <exclude reference="l74-Xq-Ot4"/>
+                                <exclude reference="ovY-5C-z33"/>
                             </mask>
                             <mask key="constraints">
                                 <exclude reference="0g8-Lh-dqC"/>
@@ -122,7 +134,9 @@
                                 <exclude reference="goT-C1-5L1"/>
                                 <exclude reference="hwG-Gv-yuo"/>
                                 <exclude reference="ceS-2W-8et"/>
+                                <exclude reference="HWb-f2-mUH"/>
                                 <exclude reference="qka-yx-2Sl"/>
+                                <exclude reference="sFe-md-1QB"/>
                                 <exclude reference="CaP-0z-mvi"/>
                             </mask>
                         </variation>
@@ -130,6 +144,7 @@
                             <mask key="subviews">
                                 <include reference="K1T-D3-CMK"/>
                                 <include reference="l74-Xq-Ot4"/>
+                                <include reference="ovY-5C-z33"/>
                             </mask>
                             <mask key="constraints">
                                 <include reference="0g8-Lh-dqC"/>
@@ -143,7 +158,9 @@
                                 <include reference="goT-C1-5L1"/>
                                 <include reference="hwG-Gv-yuo"/>
                                 <include reference="ceS-2W-8et"/>
+                                <include reference="HWb-f2-mUH"/>
                                 <include reference="qka-yx-2Sl"/>
+                                <include reference="sFe-md-1QB"/>
                                 <include reference="CaP-0z-mvi"/>
                             </mask>
                         </variation>
@@ -151,6 +168,7 @@
                     <connections>
                         <outlet property="playPauseButton" destination="yWb-Gk-fee" id="Vmz-fN-5fN"/>
                         <outlet property="progressSlider" destination="fug-JQ-bp1" id="WPq-t5-zgt"/>
+                        <outlet property="rewindButton" destination="ovY-5C-z33" id="x67-Rw-KlY"/>
                         <outlet property="showLabel" destination="K1T-D3-CMK" id="qaC-5o-qdL"/>
                         <outlet property="showTimes" destination="l74-Xq-Ot4" id="iYz-QZ-FHO"/>
                         <outlet property="timeDisplay" destination="fHW-UR-Qx1" id="6sO-Zz-OEe"/>
