@@ -16,12 +16,12 @@ class AudioPlayer {
         }
         return Static.instance
     }
-    
+
     //----------
-    
+
     enum Statuses {
         case New, Stopped, Playing, Seeking, Paused, Error
-        
+
         func toString() -> String {
             switch self {
             case New:
@@ -43,7 +43,7 @@ class AudioPlayer {
     //----------
 
     let STREAM_URL = "http://streammachine-hls001.scprdev.org/sg/kpcc-aac.m3u8?ua=KPCC-EWRTest"
-    
+
     let NORMAL_REWIND = 4 * 60 * 60
 
     var _player: AVPlayer?
@@ -69,7 +69,8 @@ class AudioPlayer {
     var _currentShow: Schedule.ScheduleInstance? = nil
     var _checkingDate: NSDate?
     var _seeking: Bool = false
-    
+
+    var prevStatus: Statuses = Statuses.New
     var status: Statuses = Statuses.New
 
     //----------
@@ -79,8 +80,8 @@ class AudioPlayer {
 
         self._dateFormat = NSDateFormatter()
         self._dateFormat.dateFormat = "hh:mm:ss a"
-        
-        
+
+
     }
 
     //----------
@@ -119,18 +120,21 @@ class AudioPlayer {
                         //NSLog("minDate is %@", self._dateFormat.stringFromDate(minDate))
                         //NSLog("maxDate is %@", self._dateFormat.stringFromDate(maxDate))
                     }
-
-                    var status = StreamDates(curDate: curDate, minDate: minDate, maxDate: maxDate)
-
-                    self.currentDates = status
-
-                    for o in self._observers {
-                        o(status)
+                    
+                    if curDate != nil {                        
+                        var status = StreamDates(curDate: curDate, minDate: minDate, maxDate: maxDate)
+                        
+                        self.currentDates = status
+                        
+                        for o in self._observers {
+                            o(status)
+                        }
+                        
+                        //NSLog("curDate is %@", self._dateFormat.stringFromDate(curDate))
+                        
+                        self._checkForNewShow(curDate, from_seek:false)
                     }
 
-                    NSLog("curDate is %@", self._dateFormat.stringFromDate(curDate))
-
-                    self._checkForNewShow(curDate, from_seek:false)
                 }
             )
         }
@@ -138,14 +142,14 @@ class AudioPlayer {
         return self._player!
 
     }
-    
+
     //----------
-    
+
     private func _setStatus(s:Statuses) -> Void {
-        let shouldNotify:Bool = !(self.status == s)
-        self.status = s
-        
-        if shouldNotify {
+        if !(self.status == s) {
+            self.prevStatus = self.status
+            self.status = s
+            
             for o in self._statusObservers {
                 o(s)
             }
@@ -163,9 +167,9 @@ class AudioPlayer {
     func onShowChange(observer:(Schedule.ScheduleInstance?) -> Void) -> Void {
         self._showObservers.append(observer)
     }
-    
+
     //----------
-    
+
     func onStatusChange(observer:(Statuses) -> Void) -> Void {
         self._statusObservers.append(observer)
     }
@@ -212,7 +216,7 @@ class AudioPlayer {
 
         self._seeking = true
         self._setStatus(Statuses.Seeking)
-        
+
         p.currentItem.seekToDate(date, completionHandler: { finished in
             if finished {
                 NSLog("seekToDate landed at %@", self._dateFormat.stringFromDate(p.currentItem.currentDate()))

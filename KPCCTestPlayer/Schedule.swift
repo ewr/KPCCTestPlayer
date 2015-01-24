@@ -39,7 +39,7 @@ class Schedule {
     
     init() {
         _fetched = []
-        self._dateF.dateFormat = "yyyy-MM-dd'T'hh:mm:ss.SSSSXXXXX"
+        self._dateF.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSXXXXX"
     }
     
     //----------
