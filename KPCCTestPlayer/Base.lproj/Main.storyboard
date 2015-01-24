@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6254" systemVersion="14C94b" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6254" systemVersion="14C106a" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BYZ-38-t0r">
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6247"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
@@ -93,9 +93,6 @@
                                 <state key="normal" title="Rewind to Start">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
-                                <variation key="heightClass=regular" misplaced="YES">
-                                    <rect key="frame" x="216" y="623" width="169" height="30"/>
-                                </variation>
                             </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
@@ -123,6 +120,10 @@
                                 <exclude reference="ovY-5C-z33"/>
                             </mask>
                             <mask key="constraints">
+                                <exclude reference="exu-0j-nhx"/>
+                                <exclude reference="goT-C1-5L1"/>
+                                <exclude reference="hwG-Gv-yuo"/>
+                                <exclude reference="ceS-2W-8et"/>
                                 <exclude reference="0g8-Lh-dqC"/>
                                 <exclude reference="S92-H5-E5F"/>
                                 <exclude reference="Teg-xo-vAe"/>
@@ -130,10 +131,6 @@
                                 <exclude reference="pAL-eU-yqk"/>
                                 <exclude reference="dhy-So-F0R"/>
                                 <exclude reference="i0T-90-nBJ"/>
-                                <exclude reference="exu-0j-nhx"/>
-                                <exclude reference="goT-C1-5L1"/>
-                                <exclude reference="hwG-Gv-yuo"/>
-                                <exclude reference="ceS-2W-8et"/>
                                 <exclude reference="HWb-f2-mUH"/>
                                 <exclude reference="qka-yx-2Sl"/>
                                 <exclude reference="sFe-md-1QB"/>
@@ -147,6 +144,10 @@
                                 <include reference="ovY-5C-z33"/>
                             </mask>
                             <mask key="constraints">
+                                <include reference="exu-0j-nhx"/>
+                                <include reference="goT-C1-5L1"/>
+                                <include reference="hwG-Gv-yuo"/>
+                                <include reference="ceS-2W-8et"/>
                                 <include reference="0g8-Lh-dqC"/>
                                 <include reference="S92-H5-E5F"/>
                                 <include reference="Teg-xo-vAe"/>
@@ -154,10 +155,6 @@
                                 <include reference="pAL-eU-yqk"/>
                                 <include reference="dhy-So-F0R"/>
                                 <include reference="i0T-90-nBJ"/>
-                                <include reference="exu-0j-nhx"/>
-                                <include reference="goT-C1-5L1"/>
-                                <include reference="hwG-Gv-yuo"/>
-                                <include reference="ceS-2W-8et"/>
                                 <include reference="HWb-f2-mUH"/>
                                 <include reference="qka-yx-2Sl"/>
                                 <include reference="sFe-md-1QB"/>
