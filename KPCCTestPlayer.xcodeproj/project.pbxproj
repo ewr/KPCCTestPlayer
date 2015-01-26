@@ -17,6 +17,7 @@
 		078A5D971A640FE100A67C41 /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 078A5D961A640FE100A67C41 /* AudioPlayer.swift */; };
 		078A5D991A64120E00A67C41 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 078A5D981A64120E00A67C41 /* AVFoundation.framework */; };
 		079783801A6AA35F00EE559B /* Schedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0797837F1A6AA35F00EE559B /* Schedule.swift */; };
+		07CC51951A753B3200E53E8B /* av_observer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07CC51941A753B3200E53E8B /* av_observer.swift */; };
 		6D2DC443795DE8E12D95808D /* Pods.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B4F431AF26C1BFC8B4DAF38 /* Pods.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 /* End PBXBuildFile section */
 
@@ -45,6 +46,7 @@
 		078A5D961A640FE100A67C41 /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
 		078A5D981A64120E00A67C41 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		0797837F1A6AA35F00EE559B /* Schedule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Schedule.swift; sourceTree = "<group>"; };
+		07CC51941A753B3200E53E8B /* av_observer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = av_observer.swift; sourceTree = "<group>"; };
 		9B4F431AF26C1BFC8B4DAF38 /* Pods.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0E203CFDC7C7D9BD0CA02BD /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 		DFA2E7B59445CDE2B8FCAE02 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
@@ -102,6 +104,7 @@
 				0714CAE21A5C7992007EB486 /* KPCCTestPlayer.xcdatamodeld */,
 				0714CADE1A5C7992007EB486 /* Supporting Files */,
 				078A5D961A640FE100A67C41 /* AudioPlayer.swift */,
+				07CC51941A753B3200E53E8B /* av_observer.swift */,
 				0797837F1A6AA35F00EE559B /* Schedule.swift */,
 			);
 			path = KPCCTestPlayer;
@@ -308,6 +311,7 @@
 				0714CAE61A5C7992007EB486 /* ViewController.swift in Sources */,
 				0714CAE11A5C7992007EB486 /* AppDelegate.swift in Sources */,
 				0714CAE41A5C7992007EB486 /* KPCCTestPlayer.xcdatamodeld in Sources */,
+				07CC51951A753B3200E53E8B /* av_observer.swift in Sources */,
 				079783801A6AA35F00EE559B /* Schedule.swift in Sources */,
 				078A5D971A640FE100A67C41 /* AudioPlayer.swift in Sources */,
 			);

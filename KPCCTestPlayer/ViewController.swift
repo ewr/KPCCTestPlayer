@@ -134,6 +134,7 @@ class ViewController: UIViewController {
         
         Schedule.sharedInstance.at(NSDate()) { show in
             self.setShowInfoFromShow(show)
+            self.currentShow = show
         }
     }
     
@@ -210,8 +211,15 @@ class ViewController: UIViewController {
     func rewindTapped(sender:UIButton!) {
         let ap = AudioPlayer.sharedInstance
 
+        // if we're playing a show, use that...
         if ap._currentShow != nil {
             ap.seekToDate(ap._currentShow!.soft_starts_at)
+            return
+        }
+        
+        // otherwise, if we have a currently-scheduled show, use that
+        if self.currentShow != nil {
+            ap.seekToDate(self.currentShow!.soft_starts_at)
         }
     }
 
