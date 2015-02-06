@@ -72,6 +72,8 @@ class AudioPlayer {
     var _currentShow: Schedule.ScheduleInstance? = nil
     var _checkingDate: NSDate?
     var _seeking: Bool = false
+    
+    var _sessionId:String?
 
     var prevStatus: Statuses = Statuses.New
     var status: Statuses = Statuses.New
@@ -162,6 +164,13 @@ class AudioPlayer {
                     NSLog("Playback stalled.")
                 case AVObserver.Statuses.AccessLog:
                     NSLog("New access log entry")
+                    
+                    if self._sessionId == nil {
+                        // grab session id from the log
+                        self._sessionId = (obj as AVPlayerItemAccessLogEvent).playbackSessionID
+                        NSLog("Playback Session ID is %@",self._sessionId!)
+                    }
+                    
                 case AVObserver.Statuses.ErrorLog:
                     NSLog("New error log entry")
                 default:
