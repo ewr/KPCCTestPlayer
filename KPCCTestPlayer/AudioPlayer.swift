@@ -154,15 +154,21 @@ class AudioPlayer {
             self._player = AVPlayer(playerItem: item)
             
             // set up an observer for player / item status
-            self._pobs = AVObserver(player:self._player!) { status,msg in
+            self._pobs = AVObserver(player:self._player!) { status,msg,obj in
                 switch status {
                 case AVObserver.Statuses.PlayerFailed:
                     NSLog("Player failed with error: %@", msg)
+                case AVObserver.Statuses.Stalled:
+                    NSLog("Playback stalled.")
+                case AVObserver.Statuses.AccessLog:
+                    NSLog("New access log entry")
+                case AVObserver.Statuses.ErrorLog:
+                    NSLog("New error log entry")
                 default:
                     true
                 }
             }
-
+            
             let av = AVAudioSession.sharedInstance()
             av.setCategory(AVAudioSessionCategoryPlayback, error:nil)
 
