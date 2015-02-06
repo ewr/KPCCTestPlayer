@@ -362,6 +362,17 @@ class AudioPlayer {
 
     //----------
 
+    func seekToLive(completionHandler:(Bool) -> Void) -> Void {
+        let p = self.getPlayer()
+
+        p.currentItem.seekToTime(kCMTimePositiveInfinity) { finished in
+            NSLog("Did seekToLive. Landed at %@", self._dateFormat.stringFromDate(p.currentItem.currentDate()))
+            completionHandler(finished)
+        }
+    }
+
+    //----------
+
     func _checkForNewShow(date:NSDate,from_seek:Bool = false) -> Void {
         if self._currentShow != nil && (
             (date.timeIntervalSinceReferenceDate >= self._currentShow!.starts_at.timeIntervalSinceReferenceDate)
