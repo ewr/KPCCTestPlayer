@@ -60,6 +60,8 @@ public class AudioPlayer {
     var _checkingDate: NSDate?
     var _seeking: Bool = false
     
+    var _seekSeq:Int = 0
+    
     var _sessionId:String?
 
     var prevStatus: Statuses = Statuses.New
@@ -184,7 +186,7 @@ public class AudioPlayer {
             // observe time every second
             self._player!.addPeriodicTimeObserverForInterval(CMTimeMake(1,1), queue: nil,
                 usingBlock: {(time:CMTime) in
-                    if self._seeking {
+                    if self.status == .Seeking {
                         // we don't want to update anything mid-seek
                         return
                     }
@@ -198,12 +200,9 @@ public class AudioPlayer {
                     if !self._player!.currentItem.seekableTimeRanges.isEmpty {
                         seek_range = self._player!.currentItem.seekableTimeRanges[0].CMTimeRangeValue
 
+                        // these calculations assume no discontinuities in the playlist data
                         minDate = NSDate(timeInterval: -1 * (CMTimeGetSeconds(time) - CMTimeGetSeconds(seek_range.start)), sinceDate:curDate)
                         maxDate = NSDate(timeInterval: CMTimeGetSeconds(CMTimeRangeGetEnd(seek_range)) - CMTimeGetSeconds(time), sinceDate:curDate)
-
-
-                        //NSLog("minDate is %@", self._dateFormat.stringFromDate(minDate))
-                        //NSLog("maxDate is %@", self._dateFormat.stringFromDate(maxDate))
                     }
                     
                     if curDate != nil {                        
@@ -214,8 +213,6 @@ public class AudioPlayer {
                         for o in self._observers {
                             o(status)
                         }
-                        
-                        //NSLog("curDate is %@", self._dateFormat.stringFromDate(curDate))
                         
                         self._checkForNewShow(curDate, from_seek:false)
                     }
@@ -290,56 +287,87 @@ public class AudioPlayer {
 
     //----------
 
-    public func seekToDate(date: NSDate) -> Bool {
+    public func seekToDate(date: NSDate,retries:Int = 3,useTime:Bool = false) -> Bool {
         // do we think we can do this?
         // FIXME: check currentDates if we have them
         NSLog("seekToDate called for %@",self._dateFormat.stringFromDate(date))
+        
+        // get a seek sequence number
+        let seek_id = ++self._seekSeq
 
         let p = self.getPlayer()
         
         if p.status != AVPlayerStatus.ReadyToPlay {
             // we need to wait for ready before playing or seeking
             NSLog("Waiting for player ReadyToPlay")
-            self._pobs?.once(.PlayerReady) { msg,obj in
-                self.seekToDate(date)
-                return Void()
+            self._pobs?.once(.ItemReady) { msg,obj in
+                NSLog("Should be ready to play...")
+                
+                if self._seekSeq == seek_id {
+                    // a cold seek with seekToDate never works, so start with seekToTime
+                    self.seekToDate(date,useTime:true)
+                    return Void()
+                }
             }
             
             return false
         }
-//        if !(self.status == Statuses.Playing || self.status == Statuses.Paused) {
-//            // hit play and pause to prepare for a seek?
-//            p.prerollAtRate(1.0) { finished in
-//                NSLog("cold preroll completed. Trying seek.")
-//                self.seekToDate(date)
-//            }
-//            return true
-//        }
 
-        self._seeking = true
         self._setStatus(.Seeking)
 
         // we'll pause, seek, then play
         if p.rate != 0.0 {
+            NSLog("Pausing to seek")
             p.pause()
         }
         
-        p.currentItem.seekToDate(date, completionHandler: { finished in
-            if finished {
-                NSLog("seekToDate landed at %@", self._dateFormat.stringFromDate(p.currentItem.currentDate()))
-                self._seeking = false
-                
-                //self._setStatus(Statuses.Playing)
-                // FIXME: Need to see if we landed where we should have. If not, try again
-                
-                // start playing
-                p.play()
-            } else {
-                NSLog("seekToDate did not finish")
-            }
+        if useTime {
+            // compute difference between currentTime and the time we want, and then use seekToTime
+            // to try and get there
+            
+            let offsetSeconds = date.timeIntervalSinceReferenceDate - p.currentItem.currentDate().timeIntervalSinceReferenceDate
+            let seek_time = CMTimeAdd(p.currentItem.currentTime(), CMTimeMakeWithSeconds(offsetSeconds, 1))
+            
+            p.currentItem.seekToTime(seek_time, completionHandler: { finished in
+                if finished {
+                    NSLog("seekToDate (time) landed at %@", self._dateFormat.stringFromDate(p.currentItem.currentDate()))
+                    p.play()
+                } else {
+                    NSLog("seekToDate (time) did not finish")
+                }
+            })
+            
+        } else {
+            // use seekToDate
+            
+            p.currentItem.seekToDate(date, completionHandler: { finished in
+                if finished {
+                    NSLog("seekToDate landed at %@", self._dateFormat.stringFromDate(p.currentItem.currentDate()))
+                    self._seeking = false
+                    
+                    // FIXME: Need to see if we landed where we should have. If not, try again
+                    
+                    // start playing
+                    p.play()
+                } else {
+                    NSLog("seekToDate did not finish")
+                    
+                    // if we get here, but our seek_id is still the current one, we should retry. If 
+                    // id has changed, there's another seek operation started and we should stop
+                    if self._seekSeq == seek_id {
+                        switch retries {
+                        case 0:
+                            NSLog("seekToDate is out of retries")
 
-
-        })
+                        case 1:
+                            self.seekToDate(date, retries: retries-1, useTime:true)
+                        default:
+                            self.seekToDate(date, retries: retries-1)
+                        }
+                    }
+                }
+            })
+        }
 
         return true
     }
@@ -353,7 +381,6 @@ public class AudioPlayer {
 
         var seek_time = CMTimeAdd( seek_range.start, CMTimeMultiplyByFloat64(seek_range.duration,percent))
 
-        self._seeking = true
         self._setStatus(.Seeking)
         
         if p.rate != 0.0 {
@@ -363,9 +390,6 @@ public class AudioPlayer {
         p.currentItem.seekToTime(seek_time, completionHandler: {(finished:Bool) -> Void in
             if finished {
                 NSLog("seekToPercent landed from %2f", percent)
-                self._seeking = false
-                //self._setStatus(Statuses.Playing)
-                
                 p.play()
             }
         })
@@ -384,7 +408,6 @@ public class AudioPlayer {
 
         p.currentItem.seekToTime(kCMTimePositiveInfinity) { finished in
             NSLog("Did seekToLive. Landed at %@", self._dateFormat.stringFromDate(p.currentItem.currentDate()))
-            
             p.play()
             
             completionHandler(finished)

@@ -82,7 +82,9 @@ class ViewController: UIViewController {
             }
         }
 
-        //---
+        // -- set show change observer -- #
+        
+        // AudioPlayer will tell us when the playhead crosses into a new show
 
         AudioPlayer.sharedInstance.onShowChange() { show in
             self.setShowInfoFromShow(show)
@@ -114,21 +116,19 @@ class ViewController: UIViewController {
                 
                 self.nowPlaying?.is_playing = true
                 self._updateNowPlaying()
-            case .Stopped:
-                self.nowPlaying?.is_playing = false
-                self._updateNowPlaying()
-            case .Paused:
+            case .Stopped, .Paused:
                 self.nowPlaying?.is_playing = false
                 self._updateNowPlaying()
             default:
-                // we don't care...
+                // we don't care?
                 true
             }
         }
         
-        //---
-        
         // -- set play/pause button state -- //
+        
+        // this could easily be done in the observer above, but setting our own 
+        // allows for less code duplication in play/pause functionality
         
         AudioPlayer.sharedInstance.onStatusChange() { status in
             switch status {
@@ -145,6 +145,9 @@ class ViewController: UIViewController {
         }
         
         // -- load information for what's on now -- //
+        
+        // this is during init, before we actually launch a player and get a show 
+        // change that way.
         
         Schedule.sharedInstance.at(NSDate()) { show in
             self.setShowInfoFromShow(show)
