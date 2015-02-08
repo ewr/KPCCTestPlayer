@@ -10,8 +10,8 @@ import Foundation
 import Alamofire
 import SwiftyJSON
 
-class Schedule {
-    class var sharedInstance: Schedule {
+public class Schedule {
+    public class var sharedInstance: Schedule {
         struct Static {
             static let instance = Schedule()
         }
@@ -20,7 +20,7 @@ class Schedule {
     
     //----------
     
-    struct ScheduleInstance {
+    public struct ScheduleInstance {
         var id:             Int
         var slug:           String?
         var title:          String
@@ -44,7 +44,7 @@ class Schedule {
     
     //----------
     
-    func at(ts:NSDate,handler:(ScheduleInstance? -> Void)) -> Void {
+    public func at(ts:NSDate,handler:(ScheduleInstance? -> Void)) -> Void {
         Alamofire.request(.GET,SCHEDULE_ENDPOINT+"/at", parameters:["time":ts.timeIntervalSince1970])
             .response { (req,res,data,err) in
                 let json = JSON(data:data! as NSData)
@@ -81,7 +81,7 @@ class Schedule {
     
     //----------
     
-    func from(start:NSDate, end:NSDate, handler:([ScheduleInstance]? -> Void)) -> Void {
+    public func from(start:NSDate, end:NSDate, handler:([ScheduleInstance]? -> Void)) -> Void {
         
     }
 }

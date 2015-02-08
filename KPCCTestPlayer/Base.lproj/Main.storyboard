@@ -108,7 +108,6 @@
                             <constraint firstAttribute="centerX" secondItem="yWb-Gk-fee" secondAttribute="centerX" constant="-0.5" id="wG6-xE-0pC"/>
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="yWb-Gk-fee" secondAttribute="bottom" constant="126" id="ynm-Hr-oFR"/>
                         </constraints>
-                        <variation key="heightClass=regular"/>
                     </view>
                     <connections>
                         <outlet property="liveButton" destination="gHp-T4-gx7" id="v8j-wY-AYe"/>

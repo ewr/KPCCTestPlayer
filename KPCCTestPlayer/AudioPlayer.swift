@@ -11,8 +11,8 @@ import AVFoundation
 import Alamofire
 import MobileCoreServices
 
-class AudioPlayer {
-    class var sharedInstance: AudioPlayer {
+public class AudioPlayer {
+    public class var sharedInstance: AudioPlayer {
         struct Static {
             static let instance = AudioPlayer()
         }
@@ -21,7 +21,7 @@ class AudioPlayer {
 
     //----------
 
-    enum Statuses {
+    public enum Statuses {
         case New, Stopped, Playing, Seeking, Paused, Error
 
         func toString() -> String {
@@ -57,7 +57,7 @@ class AudioPlayer {
 
     var _dateFormat: NSDateFormatter
 
-    struct StreamDates {
+    public struct StreamDates {
         var curDate: NSDate
         var minDate: NSDate?
         var maxDate: NSDate?
@@ -146,7 +146,7 @@ class AudioPlayer {
 
     //----------
 
-    func getPlayer() -> AVPlayer {
+    private func getPlayer() -> AVPlayer {
         if (self._player == nil) {
             let asset = AVURLAsset(URL:NSURL(string:self.STREAM_URL),options:nil)
             //let curDelegate = asset.resourceLoader.delegate
@@ -163,19 +163,18 @@ class AudioPlayer {
                 case AVObserver.Statuses.Stalled:
                     NSLog("Playback stalled.")
                 case AVObserver.Statuses.AccessLog:
-                    NSLog("New access log entry")
-                    
-                    if self._sessionId == nil {
-                        // grab session id from the log
-                        self._sessionId = (obj as AVPlayerItemAccessLogEvent).playbackSessionID
-                        NSLog("Playback Session ID is %@",self._sessionId!)
-                    }
-                    
+                    NSLog("New access log entry")                    
                 case AVObserver.Statuses.ErrorLog:
                     NSLog("New error log entry")
                 default:
                     true
                 }
+            }
+            
+            self._pobs?.once(.AccessLog) { msg,obj in
+                // grab session id from the log
+                self._sessionId = (obj as AVPlayerItemAccessLogEvent).playbackSessionID
+                NSLog("Playback Session ID is %@",self._sessionId!)
             }
             
             let av = AVAudioSession.sharedInstance()
@@ -248,25 +247,25 @@ class AudioPlayer {
 
     //----------
 
-    func observeTime(observer:(StreamDates) -> Void) -> Void {
+    public func observeTime(observer:(StreamDates) -> Void) -> Void {
         self._observers.append(observer)
     }
 
     //----------
 
-    func onShowChange(observer:(Schedule.ScheduleInstance?) -> Void) -> Void {
+    public func onShowChange(observer:(Schedule.ScheduleInstance?) -> Void) -> Void {
         self._showObservers.append(observer)
     }
 
     //----------
 
-    func onStatusChange(observer:(Statuses) -> Void) -> Void {
+    public func onStatusChange(observer:(Statuses) -> Void) -> Void {
         self._statusObservers.append(observer)
     }
 
     //----------
 
-    func play() -> Bool{
+    public func play() -> Bool{
         self.getPlayer().play()
         self.playing = true
         self._setStatus(Statuses.Playing)
@@ -276,7 +275,7 @@ class AudioPlayer {
 
     //----------
 
-    func pause() -> Bool {
+    public func pause() -> Bool {
         self.getPlayer().pause()
         self.playing = false
         self._setStatus(Statuses.Paused)
@@ -286,7 +285,7 @@ class AudioPlayer {
 
     //----------
 
-    func stop() -> Bool {
+    public func stop() -> Bool {
         // FIXME: tear down player
 
         self.currentDates = nil
@@ -297,7 +296,7 @@ class AudioPlayer {
 
     //----------
 
-    func seekToDate(date: NSDate) -> Bool {
+    public func seekToDate(date: NSDate) -> Bool {
         // do we think we can do this?
         // FIXME: check currentDates if we have them
         NSLog("seekToDate called for %@",self._dateFormat.stringFromDate(date))
@@ -338,7 +337,7 @@ class AudioPlayer {
 
     //----------
 
-    func seekToPercent(percent: Float64) -> Bool {
+    public func seekToPercent(percent: Float64) -> Bool {
         let p = self.getPlayer()
 
         var seek_range = p.currentItem.seekableTimeRanges[0].CMTimeRangeValue
@@ -362,7 +361,7 @@ class AudioPlayer {
 
     //----------
 
-    func seekToLive(completionHandler:(Bool) -> Void) -> Void {
+    public func seekToLive(completionHandler:(Bool) -> Void) -> Void {
         let p = self.getPlayer()
 
         p.currentItem.seekToTime(kCMTimePositiveInfinity) { finished in
@@ -373,7 +372,7 @@ class AudioPlayer {
 
     //----------
 
-    func _checkForNewShow(date:NSDate,from_seek:Bool = false) -> Void {
+    private func _checkForNewShow(date:NSDate,from_seek:Bool = false) -> Void {
         if self._currentShow != nil && (
             (date.timeIntervalSinceReferenceDate >= self._currentShow!.starts_at.timeIntervalSinceReferenceDate)
             && (date.timeIntervalSinceReferenceDate < self._currentShow!.ends_at.timeIntervalSinceReferenceDate)
