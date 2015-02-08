@@ -21,24 +21,11 @@ public class AudioPlayer {
 
     //----------
 
-    public enum Statuses {
-        case New, Stopped, Playing, Seeking, Paused, Error
+    public enum Statuses:String {
+        case New = "New", Stopped = "Stopped", Playing = "Playing", Waiting = "Waiting", Seeking = "Seeking", Paused = "Paused", Error = "Error"
 
         func toString() -> String {
-            switch self {
-            case New:
-                return "New"
-            case Playing:
-                return "Playing"
-            case Stopped:
-                return "Stopped"
-            case Paused:
-                return "Paused"
-            case Seeking:
-                return "Seeking"
-            case Error:
-                return "Error"
-            }
+            return self.rawValue
         }
     }
 
@@ -141,6 +128,8 @@ public class AudioPlayer {
         self._dateFormat = NSDateFormatter()
         self._dateFormat.dateFormat = "hh:mm:ss a"
         
+        self._setStatus(.New)
+        
         //self._lhelper = LoaderUAHelper()
     }
 
@@ -158,19 +147,28 @@ public class AudioPlayer {
             // set up an observer for player / item status
             self._pobs = AVObserver(player:self._player!) { status,msg,obj in
                 switch status {
-                case AVObserver.Statuses.PlayerFailed:
+                case .PlayerFailed:
                     NSLog("Player failed with error: %@", msg)
-                case AVObserver.Statuses.Stalled:
+                    // FIXME: This is fatal. We need to reset.
+                case .Stalled:
                     NSLog("Playback stalled.")
-                case AVObserver.Statuses.AccessLog:
+                case .AccessLog:
                     NSLog("New access log entry")                    
-                case AVObserver.Statuses.ErrorLog:
+                case .ErrorLog:
                     NSLog("New error log entry")
+                case .Playing:
+                    self._setStatus(.Playing)
+                case .Paused:
+                    // we pause as part of seeking, so don't pass on that status
+                    if self.status != .Seeking {
+                        self._setStatus(.Paused)
+                    }
                 default:
                     true
                 }
             }
             
+            // grab session id from our first access log
             self._pobs?.once(.AccessLog) { msg,obj in
                 // grab session id from the log
                 self._sessionId = (obj as AVPlayerItemAccessLogEvent).playbackSessionID
@@ -266,20 +264,16 @@ public class AudioPlayer {
     //----------
 
     public func play() -> Bool{
+        self._setStatus(.Waiting)
         self.getPlayer().play()
-        self.playing = true
-        self._setStatus(Statuses.Playing)
-
         return true
     }
 
     //----------
 
     public func pause() -> Bool {
+        self._setStatus(.Waiting)
         self.getPlayer().pause()
-        self.playing = false
-        self._setStatus(Statuses.Paused)
-
         return true
     }
 
@@ -305,6 +299,12 @@ public class AudioPlayer {
         
         if p.status != AVPlayerStatus.ReadyToPlay {
             // we need to wait for ready before playing or seeking
+            NSLog("Waiting for player ReadyToPlay")
+            self._pobs?.once(.PlayerReady) { msg,obj in
+                self.seekToDate(date)
+                return Void()
+            }
+            
             return false
         }
 //        if !(self.status == Statuses.Playing || self.status == Statuses.Paused) {
@@ -317,14 +317,23 @@ public class AudioPlayer {
 //        }
 
         self._seeking = true
-        self._setStatus(Statuses.Seeking)
+        self._setStatus(.Seeking)
 
+        // we'll pause, seek, then play
+        if p.rate != 0.0 {
+            p.pause()
+        }
+        
         p.currentItem.seekToDate(date, completionHandler: { finished in
             if finished {
                 NSLog("seekToDate landed at %@", self._dateFormat.stringFromDate(p.currentItem.currentDate()))
                 self._seeking = false
-                self._setStatus(Statuses.Playing)
+                
+                //self._setStatus(Statuses.Playing)
                 // FIXME: Need to see if we landed where we should have. If not, try again
+                
+                // start playing
+                p.play()
             } else {
                 NSLog("seekToDate did not finish")
             }
@@ -345,15 +354,20 @@ public class AudioPlayer {
         var seek_time = CMTimeAdd( seek_range.start, CMTimeMultiplyByFloat64(seek_range.duration,percent))
 
         self._seeking = true
-        self._setStatus(Statuses.Seeking)
+        self._setStatus(.Seeking)
+        
+        if p.rate != 0.0 {
+            p.pause()
+        }
+        
         p.currentItem.seekToTime(seek_time, completionHandler: {(finished:Bool) -> Void in
             if finished {
                 NSLog("seekToPercent landed from %2f", percent)
                 self._seeking = false
-                self._setStatus(Statuses.Playing)
+                //self._setStatus(Statuses.Playing)
+                
+                p.play()
             }
-
-
         })
 
         return true
@@ -363,9 +377,16 @@ public class AudioPlayer {
 
     public func seekToLive(completionHandler:(Bool) -> Void) -> Void {
         let p = self.getPlayer()
+        
+        if p.rate != 0.0 {
+            p.pause()
+        }
 
         p.currentItem.seekToTime(kCMTimePositiveInfinity) { finished in
             NSLog("Did seekToLive. Landed at %@", self._dateFormat.stringFromDate(p.currentItem.currentDate()))
+            
+            p.play()
+            
             completionHandler(finished)
         }
     }

@@ -101,34 +101,46 @@ class ViewController: UIViewController {
             NSLog("view player status is %@",status.toString())
             
             switch status {
-            case AudioPlayer.Statuses.New:
+            case .New:
+                // do nothing. default UI state
                 true
-            case AudioPlayer.Statuses.Playing:
+            case .Waiting:
+                // we're mid-operation... disable UI
+                NSLog("View got waiting state")
+            case .Playing:
                 // set up for remote events
                 self.becomeFirstResponder()
                 UIApplication.sharedApplication().beginReceivingRemoteControlEvents()
                 
                 self.nowPlaying?.is_playing = true
                 self._updateNowPlaying()
-                
-                true
-            case AudioPlayer.Statuses.Stopped:
-                // do something
-                
+            case .Stopped:
                 self.nowPlaying?.is_playing = false
                 self._updateNowPlaying()
-                
-                true
-            case AudioPlayer.Statuses.Paused:
-                // do something
-                
+            case .Paused:
                 self.nowPlaying?.is_playing = false
                 self._updateNowPlaying()
-                
-                true
             default:
                 // we don't care...
                 true
+            }
+        }
+        
+        //---
+        
+        // -- set play/pause button state -- //
+        
+        AudioPlayer.sharedInstance.onStatusChange() { status in
+            switch status {
+            case .Playing:
+                // show pause button
+                self.playPauseButton.setTitle("Pause", forState: .Normal)
+            case .Waiting:
+                // FIXME: disable UI temporarily
+                self.playPauseButton.setTitle("---", forState: .Normal)
+            default:
+                // show the play button
+                self.playPauseButton.setTitle("Play", forState: .Normal)
             }
         }
         
@@ -199,12 +211,14 @@ class ViewController: UIViewController {
 
     func playPauseTapped(sender:UIButton!) {
         let ap = AudioPlayer.sharedInstance
-        if ap.playing {
-            NSLog("Pausing")
+        
+        switch ap.status {
+        case .Playing:
             ap.pause()
-        } else {
-            NSLog("Playing")
+        case .Paused, .New:
             ap.play()
+        default:
+            NSLog("Unsure of play/pause action to take from %@",ap.status.toString())
         }
     }
     
