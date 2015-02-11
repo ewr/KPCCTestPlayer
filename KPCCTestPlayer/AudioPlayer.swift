@@ -31,7 +31,7 @@ public class AudioPlayer {
 
     //----------
 
-    let STREAM_URL = "http://streammachine-hls001.scprdev.org/sg/kpcc-aac.m3u8?ua=KPCC-EWRTest"
+    let STREAM_URL = "http://live.scpr.org/sg/kpcc-aac.m3u8?ua=KPCC-EWRTest"
 
     let NORMAL_REWIND = 4 * 60 * 60
 
@@ -154,10 +154,18 @@ public class AudioPlayer {
                     // FIXME: This is fatal. We need to reset.
                 case .Stalled:
                     NSLog("Playback stalled.")
+                    
+                    // FIXME: What else? Set a timeout?
+                    self._pobs!.once(.LikelyToKeepUp) { msg,obj in
+                        NSLog("trying to resume stalled playback.")
+                        self._player!.play()
+                    }
                 case .AccessLog:
-                    NSLog("New access log entry")                    
+                    let log = obj as AVPlayerItemAccessLogEvent
+                    NSLog("New access log entry")
                 case .ErrorLog:
-                    NSLog("New error log entry")
+                    let log = obj as AVPlayerItemErrorLogEvent
+                    NSLog("New error log entry \(log.errorStatusCode): \(log.errorComment)")
                 case .Playing:
                     self._setStatus(.Playing)
                 case .Paused:
@@ -165,6 +173,10 @@ public class AudioPlayer {
                     if self.status != .Seeking {
                         self._setStatus(.Paused)
                     }
+                case .LikelyToKeepUp:
+                    NSLog("playback should keep up")
+                case .UnlikelyToKeepUp:
+                    NSLog("playback unlikely to keep up")
                 default:
                     true
                 }
@@ -196,9 +208,17 @@ public class AudioPlayer {
                     var seek_range: CMTimeRange
                     var minDate: NSDate? = nil
                     var maxDate: NSDate? = nil
+                    
+                    if !self._player!.currentItem.loadedTimeRanges.isEmpty {
+                        let loaded_range = self._player!.currentItem.loadedTimeRanges[0].CMTimeRangeValue
+
+                        let buffered = CMTimeSubtract(CMTimeRangeGetEnd(loaded_range), time)
+                        NSLog("buffered: \(CMTimeGetSeconds(buffered))")
+                    }
 
                     if !self._player!.currentItem.seekableTimeRanges.isEmpty {
                         seek_range = self._player!.currentItem.seekableTimeRanges[0].CMTimeRangeValue
+                        
 
                         // these calculations assume no discontinuities in the playlist data
                         minDate = NSDate(timeInterval: -1 * (CMTimeGetSeconds(time) - CMTimeGetSeconds(seek_range.start)), sinceDate:curDate)

@@ -19,7 +19,7 @@ class AVObserver: NSObject {
     var _once = [Statuses:[OnceClosure]]()
     
     enum Statuses {
-        case PlayerFailed, PlayerReady, ItemFailed, ItemReady, Playing, Paused, Stalled, TimeJump, AccessLog, ErrorLog
+        case PlayerFailed, PlayerReady, ItemFailed, ItemReady, Playing, Paused, Stalled, TimeJump, AccessLog, ErrorLog, LikelyToKeepUp, UnlikelyToKeepUp
     }
     
     let _itemNotifications = [
@@ -38,6 +38,7 @@ class AVObserver: NSObject {
         player.addObserver(self, forKeyPath:"status", options: nil, context: nil)
         player.addObserver(self, forKeyPath:"rate", options: nil, context: nil)
         player.currentItem.addObserver(self, forKeyPath:"status", options: nil, context: nil)
+        player.currentItem.addObserver(self, forKeyPath:"playbackLikelyToKeepUp", options: nil, context: nil)
         
         // also subscribe to notifications from currentItem
         for n in self._itemNotifications {
@@ -128,13 +129,24 @@ class AVObserver: NSObject {
                 true
             }
         } else if object as NSObject == self._player.currentItem {
-            switch object.status as AVPlayerItemStatus {
-            case AVPlayerItemStatus.ReadyToPlay:
-                self._notify(Statuses.ItemReady,msg:"Item Ready to Play")
-            case AVPlayerItemStatus.Failed:
-                self._notify(Statuses.ItemFailed, msg: self._player.currentItem.error.localizedDescription, obj: self._player.currentItem.error)
+            switch keyPath {
+            case "status":
+                switch object.status as AVPlayerItemStatus {
+                case AVPlayerItemStatus.ReadyToPlay:
+                    self._notify(Statuses.ItemReady,msg:"Item Ready to Play")
+                case AVPlayerItemStatus.Failed:
+                    self._notify(Statuses.ItemFailed, msg: self._player.currentItem.error.localizedDescription, obj: self._player.currentItem.error)
+                default:
+                    NSLog("curItem gave unhandled status")
+                }
+            case "playbackLikelyToKeepUp":
+                if self._player.currentItem.playbackLikelyToKeepUp == true {
+                    self._notify(.LikelyToKeepUp, msg: "currentItem says playback is likely to keep up")
+                } else {
+                    self._notify(.UnlikelyToKeepUp, msg: "currentItem says playback is unlikely to keep up")
+                }
             default:
-                NSLog("curItem gave unhandled status")
+                true
             }
             
         } else {
