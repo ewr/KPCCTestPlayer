@@ -32,6 +32,7 @@ public class AudioPlayer {
     //----------
 
     let STREAM_URL = "http://live.scpr.org/sg/kpcc-aac.m3u8?ua=KPCC-EWRTest"
+    //let STREAM_URL = "http://205.144.162.142:8020/sg/test.m3u8?ua=KPCC-EWRTest"
 
     let NORMAL_REWIND = 4 * 60 * 60
 
@@ -63,6 +64,8 @@ public class AudioPlayer {
     var _seekSeq:Int = 0
     
     var _sessionId:String?
+    
+    var _lowBandwidth:Bool = false
 
     var prevStatus: Statuses = Statuses.New
     var status: Statuses = Statuses.New
@@ -155,14 +158,17 @@ public class AudioPlayer {
                 case .Stalled:
                     NSLog("Playback stalled.")
                     
-                    // FIXME: What else? Set a timeout?
                     self._pobs!.once(.LikelyToKeepUp) { msg,obj in
                         NSLog("trying to resume stalled playback.")
-                        self._player!.play()
+                        if self.currentDates != nil {
+                            self.seekToDate(self.currentDates!.curDate,useTime:true)
+                        } else {
+                            self._player!.play()
+                        }
                     }
                 case .AccessLog:
                     let log = obj as AVPlayerItemAccessLogEvent
-                    NSLog("New access log entry")
+                    NSLog("New access log entry: indicated:\(log.indicatedBitrate) -- switch:\(log.switchBitrate) -- stalls: \(log.numberOfStalls)")
                 case .ErrorLog:
                     let log = obj as AVPlayerItemErrorLogEvent
                     NSLog("New error log entry \(log.errorStatusCode): \(log.errorComment)")
@@ -212,8 +218,21 @@ public class AudioPlayer {
                     if !self._player!.currentItem.loadedTimeRanges.isEmpty {
                         let loaded_range = self._player!.currentItem.loadedTimeRanges[0].CMTimeRangeValue
 
-                        let buffered = CMTimeSubtract(CMTimeRangeGetEnd(loaded_range), time)
-                        NSLog("buffered: \(CMTimeGetSeconds(buffered))")
+                        let buffered = CMTimeGetSeconds(CMTimeSubtract(CMTimeRangeGetEnd(loaded_range), time))
+//                        NSLog("buffered: \(buffered)")
+                        
+//                        if buffered < 15 && !self._lowBandwidth {
+//                            // use as little bandwidth as possible
+//                            NSLog("Imposing bandwidth limit due to low buffer levels.")
+//                            self._player!.currentItem.preferredPeakBitRate = 1000
+//                            self._lowBandwidth = true
+//                        } else if buffered > 30 && self._lowBandwidth {
+//                            // take off our bandwidth limit
+//                            NSLog("Freeing bandwidth limit thanks to good buffers.")
+//                            self._player!.currentItem.preferredPeakBitRate = 0
+//                            self._lowBandwidth = false
+//                        }
+                        
                     }
 
                     if !self._player!.currentItem.seekableTimeRanges.isEmpty {
@@ -244,8 +263,6 @@ public class AudioPlayer {
         return self._player!
 
     }
-    
-    //----------
 
     //----------
 
