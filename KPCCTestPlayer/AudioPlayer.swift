@@ -69,61 +69,6 @@ public class AudioPlayer {
 
     var prevStatus: Statuses = Statuses.New
     var status: Statuses = Statuses.New
-    
-//    class LoaderUAHelper: NSObject, AVAssetResourceLoaderDelegate {
-//        let _manager:Alamofire.Manager
-//        
-//        override init() {
-//            var headers = Alamofire.Manager.sharedInstance.session.configuration.HTTPAdditionalHeaders ?? [:]
-//            headers["User-Agent"] = "KPCC-EWR 0.1"
-//            let config = NSURLSessionConfiguration.defaultSessionConfiguration()
-//            config.HTTPAdditionalHeaders = headers
-//            
-//            self._manager = Alamofire.Manager(configuration:config)
-//        }
-//        func resourceLoader(resourceLoader: AVAssetResourceLoader!, shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest!) -> Bool {
-//            
-//            // we want to convert the fake proto to http, then do the load
-//            let url = NSURLComponents(URL: loadingRequest.request.URL, resolvingAgainstBaseURL: false)
-//            
-//            if url != nil {
-//                url!.scheme = "http"
-//                
-//                let request = self._manager.request(.GET, url!.string!).response { (req,res,data,err) in
-//                    NSLog("request finished: %@",url!.string!)
-//                    loadingRequest.response = res
-//                    
-//                    // set the data
-//                    loadingRequest.dataRequest.respondWithData(data as NSData)
-//                    
-//                    if loadingRequest.contentInformationRequest != nil {
-//                        // contentType is a little funky...
-//                        if (url!.path!.rangeOfString(".aac") != nil) {
-//                            loadingRequest.contentInformationRequest.contentType = "public.aac-audio"
-//                        } else if (url!.path!.rangeOfString(".m3u8") != nil) {
-//                            loadingRequest.contentInformationRequest.contentType = "public.m3u-playlist"
-//                        }
-//                    
-//                        // data length
-//                        loadingRequest.contentInformationRequest.contentLength = data!.length!
-//                    }
-//                    
-//                    // we're done
-//                    loadingRequest.finishLoading()
-//                }
-//                
-//                //debugPrintln(request)
-//                
-//                return true
-//            } else {
-//                NSLog("failed to figure out request for %@", loadingRequest.request.URL)
-//                return false
-//            }
-//        }
-//
-//    }
-    
-    //let _lhelper:LoaderUAHelper
 
     //----------
 
@@ -134,8 +79,6 @@ public class AudioPlayer {
         self._dateFormat.dateFormat = "hh:mm:ss a"
         
         self._setStatus(.New)
-        
-        //self._lhelper = LoaderUAHelper()
     }
 
     //----------
@@ -143,8 +86,6 @@ public class AudioPlayer {
     private func getPlayer() -> AVPlayer {
         if (self._player == nil) {
             let asset = AVURLAsset(URL:NSURL(string:self.STREAM_URL),options:nil)
-            //let curDelegate = asset.resourceLoader.delegate
-            //asset.resourceLoader.setDelegate(self._lhelper, queue: dispatch_get_main_queue())
             
             let item = AVPlayerItem(asset: asset)
             self._player = AVPlayer(playerItem: item)
