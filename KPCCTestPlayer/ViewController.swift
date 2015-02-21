@@ -9,18 +9,15 @@
 import UIKit
 import MediaPlayer
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UIPageViewControllerDataSource {
     @IBOutlet weak var timeDisplay: UILabel!
     @IBOutlet weak var playPauseButton: UIButton!
-    @IBOutlet weak var progressSlider: UISlider!
-    @IBOutlet weak var scheduleTable: UITableView!
-    @IBOutlet weak var showLabel: UILabel!
-    @IBOutlet weak var showTimes: UILabel!
-    @IBOutlet weak var rewindButton: UIButton!
     @IBOutlet weak var liveButton: UIButton!
     
-    var currentShow:Schedule.ScheduleInstance?
-    var playingShow:Schedule.ScheduleInstance?
+    var pageViewController:UIPageViewController!
+    
+//    var currentShow:Schedule.ScheduleInstance?
+//    var playingShow:Schedule.ScheduleInstance?
     
     struct NowPlayingInfo {
         var title:String                = ""
@@ -34,17 +31,26 @@ class ViewController: UIViewController {
     
     var nowPlaying:NowPlayingInfo?
     
+    struct ShowInBuffer {
+        var show:Schedule.ScheduleInstance
+        var view:ShowViewController?
+    }
+    
+    var showsInBuffer:[ShowInBuffer?] = []
+    var currentShow:ShowInBuffer?
+    
     var _lastM:String?
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+
+        // create our pageview 
+        self.pageViewController = self.storyboard?.instantiateViewControllerWithIdentifier("PageViewController") as UIPageViewController
+        self.pageViewController.dataSource = self
         
         self.nowPlaying = NowPlayingInfo()
         
         self.playPauseButton.addTarget(self, action: "playPauseTapped:", forControlEvents: UIControlEvents.TouchUpInside)
-        self.progressSlider.addTarget(self, action: "sliderUpdated:", forControlEvents: UIControlEvents.ValueChanged)
-        self.rewindButton.addTarget(self, action: "rewindTapped:", forControlEvents: UIControlEvents.TouchUpInside)
         self.liveButton.addTarget(self, action: "liveTapped:", forControlEvents: UIControlEvents.TouchUpInside)
 
         var formatter = NSDateFormatter()
@@ -58,23 +64,23 @@ class ViewController: UIViewController {
             // set current time display
             self.timeDisplay.text = formatter.stringFromDate(status.curDate)
 
-            // set slider
             if status.minDate != nil {
+                // set slider
                 var duration: Double = status.maxDate!.timeIntervalSince1970 - status.minDate!.timeIntervalSince1970
                 var position: Double = status.curDate.timeIntervalSince1970 - status.minDate!.timeIntervalSince1970
 
                 var percent = position / duration
 
-                self.progressSlider.value = Float(percent)
+                self.currentShow!.view!.progressSlider.value = Float(percent)
             }
             
             let curM = self._timeF.stringFromDate(status.curDate)
             
             if (self._lastM == nil || curM != self._lastM) {
-                if (self.playingShow != nil) {
-                    let title = self.playingShow!.title + " (" + curM + ")"
+                if (self.currentShow != nil) {
+                    let title = self.currentShow!.show.title + " (" + curM + ")"
                     self.nowPlaying!.title = title
-                    self.nowPlaying!.current_duration = Double(status.curDate.timeIntervalSinceReferenceDate - self.playingShow!.starts_at.timeIntervalSinceReferenceDate)
+                    self.nowPlaying!.current_duration = Double(status.curDate.timeIntervalSinceReferenceDate - self.currentShow!.show.starts_at.timeIntervalSinceReferenceDate)
                     
                     self._updateNowPlaying()
                     self._lastM = curM
@@ -87,8 +93,8 @@ class ViewController: UIViewController {
         // AudioPlayer will tell us when the playhead crosses into a new show
 
         AudioPlayer.sharedInstance.onShowChange() { show in
-            self.setShowInfoFromShow(show)
-            self.playingShow = show
+//            self.setShowInfoFromShow(show)
+//            self.playingShow = show
             
             // set show duration
             if show != nil {
@@ -146,12 +152,22 @@ class ViewController: UIViewController {
         
         // -- load information for what's on now -- //
         
-        // this is during init, before we actually launch a player and get a show 
-        // change that way.
+        let now = NSDate()
+        let start_of_buffer = now.dateByAddingTimeInterval(-1 * Double(AudioPlayer.sharedInstance.NORMAL_REWIND))
         
-        Schedule.sharedInstance.at(NSDate()) { show in
-            self.setShowInfoFromShow(show)
-            self.currentShow = show
+        Schedule.sharedInstance.from(start_of_buffer, end: now) { shows in
+            if shows != nil {
+                // curent show will be the last one in the list
+                //self.setShowInfoFromShow(shows!.last)
+
+                for s in shows! {
+                    self.showsInBuffer.append(ShowInBuffer(show:s, view:nil))
+                }
+                
+                self.currentShow = self.showsInBuffer.last?
+
+                self._setUpShowPages()
+            }
         }
     }
     
@@ -191,24 +207,24 @@ class ViewController: UIViewController {
     }
     
     //----------
-    
-    func setShowInfoFromShow(show:Schedule.ScheduleInstance?) -> Void {
-        if show != nil {
-            self.showLabel.text = show!.title
-            self.showTimes.text =
-                self._timeF.stringFromDate(show!.starts_at) + " - " + self._timeF.stringFromDate(show!.ends_at)
-            
-            self.nowPlaying?.title = show!.title
-            self._updateNowPlaying()
-            
-        } else {
-            self.showLabel.text = "????"
-            self.showTimes.text = ""
-            
-            self.nowPlaying?.title = ""
-            self._updateNowPlaying()
-        }
-    }
+   
+//    func setShowInfoFromShow(show:Schedule.ScheduleInstance?) -> Void {
+//        if show != nil {
+//            self.showLabel.text = show!.title
+//            self.showTimes.text =
+//                self._timeF.stringFromDate(show!.starts_at) + " - " + self._timeF.stringFromDate(show!.ends_at)
+//            
+//            self.nowPlaying?.title = show!.title
+//            self._updateNowPlaying()
+//            
+//        } else {
+//            self.showLabel.text = "????"
+//            self.showTimes.text = ""
+//            
+//            self.nowPlaying?.title = ""
+//            self._updateNowPlaying()
+//        }
+//    }
     
     //----------
 
@@ -247,7 +263,7 @@ class ViewController: UIViewController {
         
         // otherwise, if we have a currently-scheduled show, use that
         if self.currentShow != nil {
-            ap.seekToDate(self.currentShow!.soft_starts_at)
+            ap.seekToDate(self.currentShow!.show.soft_starts_at)
         }
     }
 
@@ -257,6 +273,40 @@ class ViewController: UIViewController {
         let ap = AudioPlayer.sharedInstance
         var fpercent = Float64(sender.value)
         ap.seekToPercent(fpercent)
+    }
+    
+    //----------
+    
+    private func _setUpShowPages() {
+        // build our current page
+        self.currentShow!.view = self.storyboard?.instantiateViewControllerWithIdentifier("ShowContentController") as? ShowViewController
+        self.currentShow!.view!.show = self.currentShow!.show
+    }
+    
+    //----------
+    
+    func pageViewController(pageViewController: UIPageViewController, viewControllerAfterViewController viewController: UIViewController) -> UIViewController? {
+        
+        return nil
+    }
+    
+    //----------
+    
+    func pageViewController(pageViewController: UIPageViewController, viewControllerBeforeViewController viewController: UIViewController) -> UIViewController? {
+    
+        return nil
+    }
+    
+    //----------
+    
+    func presentationCountForPageViewController(pageViewController: UIPageViewController) -> Int {
+        return self.showsInBuffer.count
+    }
+    
+    //----------
+    
+    func presentationIndexForPageViewController(pageViewController: UIPageViewController) -> Int {
+        return self.showsInBuffer.count - 1
     }
 
 }

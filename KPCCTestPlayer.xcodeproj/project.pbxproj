@@ -20,6 +20,8 @@
 		079783801A6AA35F00EE559B /* Schedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0797837F1A6AA35F00EE559B /* Schedule.swift */; };
 		07A6B1CD1A8663D200C65957 /* AudioPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A6B1CC1A8663D200C65957 /* AudioPlayerTests.swift */; };
 		07CC51951A753B3200E53E8B /* av_observer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07CC51941A753B3200E53E8B /* av_observer.swift */; };
+		07DAE3071A90F04A005754CD /* ShowViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07DAE3061A90F04A005754CD /* ShowViewController.swift */; };
+		07DAE3091A90FDAF005754CD /* ScheduleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07DAE3081A90FDAF005754CD /* ScheduleTests.swift */; };
 		8FD23B5C59072D5F7B9AE57E /* Pods.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B63AF27C66A6E54DA6CA7FF1 /* Pods.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		AFCA081B6F4B7A8D0AF1A44D /* Pods_KPCCTestPlayerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE84C4F9D006DD8EC3E6BDB7 /* Pods_KPCCTestPlayerTests.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 /* End PBXBuildFile section */
@@ -52,6 +54,8 @@
 		0797837F1A6AA35F00EE559B /* Schedule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Schedule.swift; sourceTree = "<group>"; };
 		07A6B1CC1A8663D200C65957 /* AudioPlayerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayerTests.swift; sourceTree = "<group>"; };
 		07CC51941A753B3200E53E8B /* av_observer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = av_observer.swift; sourceTree = "<group>"; };
+		07DAE3061A90F04A005754CD /* ShowViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShowViewController.swift; sourceTree = "<group>"; };
+		07DAE3081A90FDAF005754CD /* ScheduleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScheduleTests.swift; sourceTree = "<group>"; };
 		B63AF27C66A6E54DA6CA7FF1 /* Pods.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0E203CFDC7C7D9BD0CA02BD /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 		DE84C4F9D006DD8EC3E6BDB7 /* Pods_KPCCTestPlayerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KPCCTestPlayerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -105,6 +109,7 @@
 			children = (
 				0714CAE01A5C7992007EB486 /* AppDelegate.swift */,
 				0714CAE51A5C7992007EB486 /* ViewController.swift */,
+				07DAE3061A90F04A005754CD /* ShowViewController.swift */,
 				0714CAE71A5C7992007EB486 /* Main.storyboard */,
 				0714CAEA1A5C7992007EB486 /* Images.xcassets */,
 				0714CAEC1A5C7992007EB486 /* LaunchScreen.xib */,
@@ -130,6 +135,7 @@
 			children = (
 				07A6B1CC1A8663D200C65957 /* AudioPlayerTests.swift */,
 				0714CAF71A5C7992007EB486 /* Supporting Files */,
+				07DAE3081A90FDAF005754CD /* ScheduleTests.swift */,
 			);
 			path = KPCCTestPlayerTests;
 			sourceTree = "<group>";
@@ -371,6 +377,7 @@
 				0714CAE61A5C7992007EB486 /* ViewController.swift in Sources */,
 				0714CAE11A5C7992007EB486 /* AppDelegate.swift in Sources */,
 				0714CAE41A5C7992007EB486 /* KPCCTestPlayer.xcdatamodeld in Sources */,
+				07DAE3071A90F04A005754CD /* ShowViewController.swift in Sources */,
 				07CC51951A753B3200E53E8B /* av_observer.swift in Sources */,
 				079783801A6AA35F00EE559B /* Schedule.swift in Sources */,
 				078A5D971A640FE100A67C41 /* AudioPlayer.swift in Sources */,
@@ -381,6 +388,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				07DAE3091A90FDAF005754CD /* ScheduleTests.swift in Sources */,
 				07A6B1CD1A8663D200C65957 /* AudioPlayerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
