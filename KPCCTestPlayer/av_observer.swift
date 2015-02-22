@@ -16,7 +16,8 @@ class AVObserver: NSObject {
     let _callback:CallbackClosure
     let _player:AVPlayer
     
-    var _once = [Statuses:[OnceClosure]]()
+    var _once   = [Statuses:[OnceClosure]]()
+    var _on     = [Statuses:[OnceClosure]]()
     
     enum Statuses {
         case PlayerFailed, PlayerReady, ItemFailed, ItemReady, Playing, Paused, Stalled, TimeJump, AccessLog, ErrorLog, LikelyToKeepUp, UnlikelyToKeepUp
@@ -49,7 +50,15 @@ class AVObserver: NSObject {
     //----------
     
     func stop() {
+        self._player.removeObserver(self,forKeyPath:"status")
+        self._player.removeObserver(self, forKeyPath:"rate")
+        self._player.currentItem.removeObserver(self, forKeyPath: "status")
+        self._player.currentItem.removeObserver(self, forKeyPath: "playbackLikelyToKeepUp")
         
+        NSNotificationCenter.defaultCenter().removeObserver(self)
+        
+        self._once.removeAll(keepCapacity: false)
+        self._on.removeAll(keepCapacity: false)
     }
     
     //----------
@@ -64,10 +73,28 @@ class AVObserver: NSObject {
     
     //----------
     
+    func on(status:Statuses,callback:OnceClosure) -> Void {
+        if (self._on[status] == nil) {
+            self._on[status] = []
+        }
+        
+        self._on[status]?.append(callback)
+    }
+    
+    //----------
+    
     private func _notify(status:Statuses,msg:String,obj:AnyObject? = nil) -> Void {
         // always notify our callback
         self._callback(status,msg,obj)
         
+        // repeat callbacks
+        if let on_callbacks = self._on[status] {
+            for c in on_callbacks {
+                c(msg,obj)
+            }
+        }
+        
+        // one-time callbacks
         if let callbacks = self._once[status] {
             // alert the array of callbacks
             for c in callbacks {

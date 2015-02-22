@@ -13,11 +13,13 @@ class ViewController: UIViewController {
     @IBOutlet weak var timeDisplay: UILabel!
     @IBOutlet weak var playPauseButton: UIButton!
     @IBOutlet weak var progressSlider: UISlider!
-    @IBOutlet weak var scheduleTable: UITableView!
     @IBOutlet weak var showLabel: UILabel!
     @IBOutlet weak var showTimes: UILabel!
     @IBOutlet weak var rewindButton: UIButton!
     @IBOutlet weak var liveButton: UIButton!
+    
+    @IBOutlet weak var variantLabel: UILabel!
+    @IBOutlet weak var bufferLabel: UILabel!
     
     var currentShow:Schedule.ScheduleInstance?
     var playingShow:Schedule.ScheduleInstance?
@@ -35,6 +37,8 @@ class ViewController: UIViewController {
     var nowPlaying:NowPlayingInfo?
     
     var _lastM:String?
+    
+    var _bufferTimer:NSTimer?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -48,7 +52,7 @@ class ViewController: UIViewController {
         self.liveButton.addTarget(self, action: "liveTapped:", forControlEvents: UIControlEvents.TouchUpInside)
 
         var formatter = NSDateFormatter()
-        formatter.dateFormat = "YYYY-MM-DD hh:mm:ss"
+        formatter.dateFormat = "YYYY-MM-dd hh:mm:ss"
 
         self._timeF.dateFormat = "h:mma"
 
@@ -119,6 +123,9 @@ class ViewController: UIViewController {
             case .Stopped, .Paused:
                 self.nowPlaying?.is_playing = false
                 self._updateNowPlaying()
+                
+                // clear variant display
+                self.variantLabel.text = "---"
             default:
                 // we don't care?
                 true
@@ -153,6 +160,17 @@ class ViewController: UIViewController {
             self.setShowInfoFromShow(show)
             self.currentShow = show
         }
+        
+        // -- set up timer for buffered seconds -- //
+        
+        // FIXME: This should only really go if something is playing...
+        self._bufferTimer = NSTimer.scheduledTimerWithTimeInterval(1, target:self, selector:"_updateBufferLabel", userInfo:nil, repeats:true)
+        
+        // -- watch for variant changes -- //
+        
+        AudioPlayer.sharedInstance.onAccessLog() { log in
+            self.variantLabel.text = "\(log.indicatedBitrate)"
+        }
     }
     
     //----------
@@ -178,6 +196,30 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
+    //----------
+    
+    func _updateBufferLabel() {
+        
+        var value:String = "---"
+        
+        switch AudioPlayer.sharedInstance.status {
+        case .Playing, .Paused, .Waiting:
+            // update
+            let buffer = AudioPlayer.sharedInstance.bufferedSecs()
+            
+            if buffer != nil {
+                value = "\(round(buffer!))"
+            } else {
+                value = "???"
+            }
+        default:
+            // reset to blank
+            true
+        }
+        
+        self.bufferLabel.text = value
+    }
+    
     //----------
     
     func _updateNowPlaying() -> Void {
@@ -218,7 +260,7 @@ class ViewController: UIViewController {
         switch ap.status {
         case .Playing:
             ap.pause()
-        case .Paused, .New:
+        case .Paused, .New, .Stopped:
             ap.play()
         default:
             NSLog("Unsure of play/pause action to take from %@",ap.status.toString())

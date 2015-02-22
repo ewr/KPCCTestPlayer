@@ -28,11 +28,19 @@ public class AudioPlayer {
             return self.rawValue
         }
     }
-
+    
     //----------
-
-    let STREAM_URL = "http://live.scpr.org/sg/kpcc-aac.m3u8?ua=KPCC-EWRTest"
-    //let STREAM_URL = "http://205.144.162.142:8020/sg/test.m3u8?ua=KPCC-EWRTest"
+    
+    public enum Streams:String {
+        case Production = "http://live.scpr.org/sg/kpcc-aac.m3u8?ua=KPCC-EWRTest"
+        case Testing    = "http://streammachine-test.scprdev.org:8020/sg/test.m3u8"
+        
+        func toString() -> String {
+            return self.rawValue
+        }
+    }
+    
+    //----------
 
     let NORMAL_REWIND = 4 * 60 * 60
 
@@ -52,10 +60,14 @@ public class AudioPlayer {
     }
 
     var currentDates: StreamDates?
+    
+    //----------
 
-    var _observers: [(StreamDates) -> Void] = []
-    var _showObservers: [(Schedule.ScheduleInstance?) -> Void] = []
-    var _statusObservers: [(Statuses) -> Void] = []
+    var _observers:             [(StreamDates) -> Void] = []
+    var _showObservers:         [(Schedule.ScheduleInstance?) -> Void] = []
+    var _statusObservers:       [(Statuses) -> Void] = []
+    var _accessLogObservers:    [(AVPlayerItemAccessLogEvent) -> Void] = []
+    var _errorLogObservers:     [(AVPlayerItemErrorLogEvent) -> Void] = []
 
     var _currentShow: Schedule.ScheduleInstance? = nil
     var _checkingDate: NSDate?
@@ -69,6 +81,8 @@ public class AudioPlayer {
 
     var prevStatus: Statuses = Statuses.New
     var status: Statuses = Statuses.New
+    
+    var _mode:Streams = .Production
 
     //----------
 
@@ -85,7 +99,8 @@ public class AudioPlayer {
 
     private func getPlayer() -> AVPlayer {
         if (self._player == nil) {
-            let asset = AVURLAsset(URL:NSURL(string:self.STREAM_URL),options:nil)
+            NSLog("Creating new Audio Player instance for stream \(self._mode.toString())")
+            let asset = AVURLAsset(URL:NSURL(string:self._mode.toString()),options:nil)
             
             let item = AVPlayerItem(asset: asset)
             self._player = AVPlayer(playerItem: item)
@@ -110,9 +125,17 @@ public class AudioPlayer {
                 case .AccessLog:
                     let log = obj as AVPlayerItemAccessLogEvent
                     NSLog("New access log entry: indicated:\(log.indicatedBitrate) -- switch:\(log.switchBitrate) -- stalls: \(log.numberOfStalls)")
+                    
+                    for o in self._accessLogObservers {
+                        o(log)
+                    }
                 case .ErrorLog:
                     let log = obj as AVPlayerItemErrorLogEvent
                     NSLog("New error log entry \(log.errorStatusCode): \(log.errorComment)")
+                    
+                    for o in self._errorLogObservers {
+                        o(log)
+                    }
                 case .Playing:
                     self._setStatus(.Playing)
                 case .Paused:
@@ -145,6 +168,11 @@ public class AudioPlayer {
             // observe time every second
             self._player!.addPeriodicTimeObserverForInterval(CMTimeMake(1,1), queue: nil,
                 usingBlock: {(time:CMTime) in
+                    // make sure we didn't happen to get fired while player is getting removed
+                    if self._player == nil {
+                        return
+                    }
+                    
                     if self.status == .Seeking {
                         // we don't want to update anything mid-seek
                         return
@@ -204,6 +232,19 @@ public class AudioPlayer {
         return self._player!
 
     }
+    
+    //----------
+    
+    public func bufferedSecs() -> Double? {
+        if ( self._player != nil && !self._player!.currentItem.loadedTimeRanges.isEmpty ) {
+            let loaded_range = self._player!.currentItem.loadedTimeRanges[0].CMTimeRangeValue
+            let buffered = CMTimeGetSeconds(CMTimeSubtract(CMTimeRangeGetEnd(loaded_range), self._player!.currentTime()))
+            
+            return buffered
+        } else {
+            return nil
+        }
+    }
 
     //----------
 
@@ -215,6 +256,26 @@ public class AudioPlayer {
             for o in self._statusObservers {
                 o(s)
             }
+        }
+    }
+    
+    //----------
+    
+    public func getAccessLog() -> AVPlayerItemAccessLog? {
+        if self._player != nil {
+            return self._player!.currentItem.accessLog()
+        } else {
+            return nil
+        }
+    }
+    
+    //----------
+    
+    public func getErrorLog() -> AVPlayerItemErrorLog? {
+        if self._player != nil {
+            return self._player!.currentItem.errorLog()
+        } else {
+            return nil
         }
     }
 
@@ -234,6 +295,37 @@ public class AudioPlayer {
 
     public func onStatusChange(observer:(Statuses) -> Void) -> Void {
         self._statusObservers.append(observer)
+    }
+    
+    //----------
+    
+    public func onAccessLog(obs:(AVPlayerItemAccessLogEvent) -> Void) -> Void {
+        self._accessLogObservers.append(obs)
+    }
+    
+    //----------
+
+    public func onErrorLog(obs:(AVPlayerItemErrorLogEvent) -> Void) -> Void {
+        self._errorLogObservers.append(obs)
+    }
+
+    //----------
+    
+    public func setMode(mode:Streams) -> Void {
+        if self._mode == mode {
+            // no change
+            return
+        }
+        
+        // to change modes we need to tear down the current player
+        self.stop()
+        
+        // and finally set our new mode
+        self._mode = mode
+    }
+    
+    public func getMode() -> Streams {
+        return self._mode
     }
 
     //----------
@@ -255,7 +347,10 @@ public class AudioPlayer {
     //----------
 
     public func stop() -> Bool {
-        // FIXME: tear down player
+        // tear down player and observer
+        self.pause()
+        self._pobs?.stop()
+        self._player = nil
 
         self.currentDates = nil
         self._setStatus(Statuses.Stopped)
@@ -379,6 +474,17 @@ public class AudioPlayer {
 
     public func seekToLive(completionHandler:(Bool) -> Void) -> Void {
         let p = self.getPlayer()
+        
+        if p.status != AVPlayerStatus.ReadyToPlay {
+            // we need to wait for ready before playing or seeking
+            NSLog("Waiting for player ReadyToPlay")
+            self._pobs?.once(.ItemReady) { msg,obj in
+                NSLog("Seeking now that player is ready.")
+                self.seekToLive(completionHandler)
+            }
+            
+            return
+        }
         
         if p.rate != 0.0 {
             p.pause()
