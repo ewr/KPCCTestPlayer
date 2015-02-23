@@ -145,7 +145,7 @@
                             <constraint firstItem="KpE-qV-K2F" firstAttribute="baseline" secondItem="9c6-8K-MAT" secondAttribute="baseline" id="zzk-yw-hPH"/>
                         </constraints>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Player" id="JKp-EA-rMF"/>
+                    <tabBarItem key="tabBarItem" title="Player" image="player" id="JKp-EA-rMF"/>
                     <connections>
                         <outlet property="bufferLabel" destination="NwV-YN-ncI" id="mDZ-UN-0L8"/>
                         <outlet property="liveButton" destination="gHp-T4-gx7" id="v8j-wY-AYe"/>
@@ -200,7 +200,7 @@
                             <constraint firstItem="AF2-3n-jM6" firstAttribute="top" secondItem="CVJ-H5-qLx" secondAttribute="bottom" constant="19" id="yqQ-mh-LiB"/>
                         </constraints>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Access Log" id="x9r-SF-Kkx"/>
+                    <tabBarItem key="tabBarItem" title="Access Log" image="access_log" id="x9r-SF-Kkx"/>
                     <connections>
                         <outlet property="logView" destination="CVJ-H5-qLx" id="aEi-pk-bD0"/>
                     </connections>
@@ -247,7 +247,7 @@
                             <constraint firstItem="Ngd-cn-8Eg" firstAttribute="leading" secondItem="QeK-29-7Gl" secondAttribute="leadingMargin" id="y1X-FF-FxO"/>
                         </constraints>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Error Log" id="fkX-Tr-WlH"/>
+                    <tabBarItem key="tabBarItem" title="Error Log" image="error_log" id="fkX-Tr-WlH"/>
                     <connections>
                         <outlet property="logView" destination="Ngd-cn-8Eg" id="RFe-Xd-k9O"/>
                     </connections>
@@ -311,7 +311,7 @@
                             <outlet property="delegate" destination="W7Q-d7-Ciw" id="l63-Bz-KY7"/>
                         </connections>
                     </tableView>
-                    <tabBarItem key="tabBarItem" title="Settings" id="li4-dh-eb8"/>
+                    <tabBarItem key="tabBarItem" title="Settings" image="settings" id="li4-dh-eb8"/>
                     <connections>
                         <outlet property="modeToggle" destination="OO1-0c-QPi" id="5RR-p9-Erb"/>
                     </connections>
@@ -342,4 +342,10 @@
             <point key="canvasLocation" x="429" y="232"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="access_log" width="25" height="25"/>
+        <image name="error_log" width="25" height="25"/>
+        <image name="player" width="25" height="25"/>
+        <image name="settings" width="25" height="25"/>
+    </resources>
 </document>

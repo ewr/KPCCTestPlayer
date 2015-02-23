@@ -40,6 +40,8 @@ public class AudioPlayer {
         }
     }
     
+    public typealias finishCallback = (Bool) -> Void
+    
     //----------
 
     let NORMAL_REWIND = 4 * 60 * 60
@@ -472,7 +474,7 @@ public class AudioPlayer {
 
     //----------
 
-    public func seekToLive(completionHandler:(Bool) -> Void) -> Void {
+    public func seekToLive(completionHandler:finishCallback) -> Void {
         let p = self.getPlayer()
         
         if p.status != AVPlayerStatus.ReadyToPlay {

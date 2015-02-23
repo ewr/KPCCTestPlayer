@@ -169,7 +169,10 @@ class ViewController: UIViewController {
         // -- watch for variant changes -- //
         
         AudioPlayer.sharedInstance.onAccessLog() { log in
-            self.variantLabel.text = "\(log.indicatedBitrate)"
+            let kbrate = String(format:"%d",Int(log.indicatedBitrate / 1000))
+            
+            
+            self.variantLabel.text = "\(kbrate)kb"
         }
     }
     
