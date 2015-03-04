@@ -20,7 +20,8 @@ class AVObserver: NSObject {
     var _on     = [Statuses:[OnceClosure]]()
     
     enum Statuses {
-        case PlayerFailed, PlayerReady, ItemFailed, ItemReady, Playing, Paused, Stalled, TimeJump, AccessLog, ErrorLog, LikelyToKeepUp, UnlikelyToKeepUp
+        case    PlayerFailed, PlayerReady, ItemFailed, ItemReady, Playing, Paused,
+                Stalled, TimeJump, AccessLog, ErrorLog, LikelyToKeepUp, UnlikelyToKeepUp
     }
     
     let _itemNotifications = [

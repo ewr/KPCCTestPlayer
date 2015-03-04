@@ -31,9 +31,16 @@ public class AudioPlayer {
     
     //----------
     
+    public struct Event {
+        public var message:String
+        public var time:NSDate
+    }
+    
+    //----------
+    
     public enum Streams:String {
         case Production = "http://live.scpr.org/sg/kpcc-aac.m3u8?ua=KPCC-EWRTest"
-        case Testing    = "http://streammachine-test.scprdev.org:8020/sg/test.m3u8"
+        case Testing    = "http://streammachine-tmp.scprdev.org/sg/kpcc-aac.m3u8?ua=KPCC-EWRTest"
         
         func toString() -> String {
             return self.rawValue
@@ -56,9 +63,10 @@ public class AudioPlayer {
     var _dateFormat: NSDateFormatter
 
     public struct StreamDates {
-        var curDate: NSDate
-        var minDate: NSDate?
-        var maxDate: NSDate?
+        var curDate:    NSDate
+        var minDate:    NSDate?
+        var maxDate:    NSDate?
+        var buffered:   Double?
     }
 
     var currentDates: StreamDates?
@@ -70,6 +78,7 @@ public class AudioPlayer {
     var _statusObservers:       [(Statuses) -> Void] = []
     var _accessLogObservers:    [(AVPlayerItemAccessLogEvent) -> Void] = []
     var _errorLogObservers:     [(AVPlayerItemErrorLogEvent) -> Void] = []
+    var _eventLogObservers:     [(Event) -> Void] = []
 
     var _currentShow: Schedule.ScheduleInstance? = nil
     var _checkingDate: NSDate?
@@ -85,6 +94,7 @@ public class AudioPlayer {
     var status: Statuses = Statuses.New
     
     var _mode:Streams = .Production
+    var _wasInterrupted:Bool = false
 
     //----------
 
@@ -95,6 +105,41 @@ public class AudioPlayer {
         self._dateFormat.dateFormat = "hh:mm:ss a"
         
         self._setStatus(.New)
+        
+        // -- watch for interruptions --
+        
+        NSNotificationCenter.defaultCenter().addObserverForName(AVAudioSessionInterruptionNotification, object: nil, queue: NSOperationQueue.mainQueue()) { n in
+            // FIXME: You can't tell me there isn't a cleaner way to do this...
+            switch AVAudioSessionInterruptionType( rawValue: n.userInfo![AVAudioSessionInterruptionTypeKey] as UInt)! {
+            case .Began:
+                NSLog("Player interruption began. State was \(self.status.toString())")
+                
+                // this is a little bit of a hack... we want prevStatus to be our current status 
+                // when we return from the interruption, but if we're already paused we might not 
+                // get it set the normal way.
+                self.prevStatus = self.status
+                
+                true
+            case .Ended:
+                // should we resume?
+                
+                let opts = AVAudioSessionInterruptionOptions( n.userInfo![AVAudioSessionInterruptionOptionKey] as UInt )
+
+                if opts == .OptionShouldResume {
+                    NSLog("Told we should resume. Previous status was \(self.prevStatus.toString())")
+                    if self.prevStatus == .Playing {
+                        if self.currentDates != nil {
+                            self.seekToDate(self.currentDates!.curDate,useTime:true)
+                        } else {
+                            self.play()
+                        }
+                    }
+                }
+            default:
+                // there are only two cases...
+                true
+            }
+        }
     }
 
     //----------
@@ -102,6 +147,8 @@ public class AudioPlayer {
     private func getPlayer() -> AVPlayer {
         if (self._player == nil) {
             NSLog("Creating new Audio Player instance for stream \(self._mode.toString())")
+            self._emitEvent("New player instance created for stream \(self._mode.toString())")
+            
             let asset = AVURLAsset(URL:NSURL(string:self._mode.toString()),options:nil)
             
             let item = AVPlayerItem(asset: asset)
@@ -109,15 +156,20 @@ public class AudioPlayer {
             
             // set up an observer for player / item status
             self._pobs = AVObserver(player:self._player!) { status,msg,obj in
+                self._emitEvent(msg)
+                
                 switch status {
                 case .PlayerFailed:
                     NSLog("Player failed with error: %@", msg)
-                    // FIXME: This is fatal. We need to reset.
+                    self.stop()
+                case .ItemFailed:
+                    NSLog("Item failed with error: \(msg)")
+                    self.stop()
                 case .Stalled:
-                    NSLog("Playback stalled.")
+                    NSLog("Playback stalled at \(self._dateFormat.stringFromDate(self.currentDates!.curDate)).")
                     
                     self._pobs!.once(.LikelyToKeepUp) { msg,obj in
-                        NSLog("trying to resume stalled playback.")
+                        NSLog("trying to resume playback at stall position.")
                         if self.currentDates != nil {
                             self.seekToDate(self.currentDates!.curDate,useTime:true)
                         } else {
@@ -149,6 +201,8 @@ public class AudioPlayer {
                     NSLog("playback should keep up")
                 case .UnlikelyToKeepUp:
                     NSLog("playback unlikely to keep up")
+                case .TimeJump:
+                    NSLog("Player reports that time jumped.")
                 default:
                     true
                 }
@@ -158,6 +212,7 @@ public class AudioPlayer {
             self._pobs?.once(.AccessLog) { msg,obj in
                 // grab session id from the log
                 self._sessionId = (obj as AVPlayerItemAccessLogEvent).playbackSessionID
+                self._emitEvent("Playback session ID is \(self._sessionId)")
                 NSLog("Playback Session ID is %@",self._sessionId!)
             }
             
@@ -185,30 +240,15 @@ public class AudioPlayer {
                     var seek_range: CMTimeRange
                     var minDate: NSDate? = nil
                     var maxDate: NSDate? = nil
+                    var buffered: Double? = nil
                     
                     if !self._player!.currentItem.loadedTimeRanges.isEmpty {
                         let loaded_range = self._player!.currentItem.loadedTimeRanges[0].CMTimeRangeValue
-
-                        let buffered = CMTimeGetSeconds(CMTimeSubtract(CMTimeRangeGetEnd(loaded_range), time))
-//                        NSLog("buffered: \(buffered)")
-                        
-//                        if buffered < 15 && !self._lowBandwidth {
-//                            // use as little bandwidth as possible
-//                            NSLog("Imposing bandwidth limit due to low buffer levels.")
-//                            self._player!.currentItem.preferredPeakBitRate = 1000
-//                            self._lowBandwidth = true
-//                        } else if buffered > 30 && self._lowBandwidth {
-//                            // take off our bandwidth limit
-//                            NSLog("Freeing bandwidth limit thanks to good buffers.")
-//                            self._player!.currentItem.preferredPeakBitRate = 0
-//                            self._lowBandwidth = false
-//                        }
-                        
+                        buffered = CMTimeGetSeconds(CMTimeSubtract(CMTimeRangeGetEnd(loaded_range), time))
                     }
 
                     if !self._player!.currentItem.seekableTimeRanges.isEmpty {
                         seek_range = self._player!.currentItem.seekableTimeRanges[0].CMTimeRangeValue
-                        
 
                         // these calculations assume no discontinuities in the playlist data
                         minDate = NSDate(timeInterval: -1 * (CMTimeGetSeconds(time) - CMTimeGetSeconds(seek_range.start)), sinceDate:curDate)
@@ -216,7 +256,7 @@ public class AudioPlayer {
                     }
                     
                     if curDate != nil {                        
-                        var status = StreamDates(curDate: curDate, minDate: minDate, maxDate: maxDate)
+                        var status = StreamDates(curDate: curDate, minDate: minDate, maxDate: maxDate, buffered:buffered)
                         
                         self.currentDates = status
                         
@@ -226,7 +266,6 @@ public class AudioPlayer {
                         
                         self._checkForNewShow(curDate, from_seek:false)
                     }
-
                 }
             )
         }
@@ -249,11 +288,22 @@ public class AudioPlayer {
     }
 
     //----------
+    
+    private func _emitEvent(msg:String) -> Void {
+        let event = Event(message: msg, time: NSDate())
+        for o in self._eventLogObservers {
+            o(event)
+        }
+    }
+    
+    //----------
 
     private func _setStatus(s:Statuses) -> Void {
         if !(self.status == s) {
             self.prevStatus = self.status
             self.status = s
+            
+            self._emitEvent("Player status is now \(s.toString())")
             
             for o in self._statusObservers {
                 o(s)
@@ -309,6 +359,12 @@ public class AudioPlayer {
 
     public func onErrorLog(obs:(AVPlayerItemErrorLogEvent) -> Void) -> Void {
         self._errorLogObservers.append(obs)
+    }
+    
+    //----------
+    
+    public func onEventLog(obs:(Event) -> Void) -> Void {
+        self._eventLogObservers.append(obs)
     }
 
     //----------

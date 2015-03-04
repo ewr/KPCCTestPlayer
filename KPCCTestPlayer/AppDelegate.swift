@@ -20,20 +20,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
 
-        //NSNotificationCenter.defaultCenter().addObserverForName(AVAudioSessionInterruptionNotification, object: nil, queue: NSOperationQueue.mainQueue()) { note in
-        //}
-        
-        AudioPlayer.sharedInstance.onStatusChange() { status in
-            switch status {
-            case AudioPlayer.Statuses.Playing:
-                true
-                
-            case AudioPlayer.Statuses.Paused:
-                // set playback rate to 0.0
-                true
-            default:
-                true
-            }
+        AudioPlayer.sharedInstance.onEventLog() { event in
+            NSLog("AudioPlayer Event: \(event.message)")
         }
 
         return true
