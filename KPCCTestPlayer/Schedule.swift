@@ -75,7 +75,7 @@ public class Schedule {
     public func at(ts:NSDate,handler:ScheduleInstanceHandler) -> Void {
         Alamofire.request(.GET,SCHEDULE_ENDPOINT+"/at", parameters:["time":ts.timeIntervalSince1970])
             .response { (req,res,data,err) in
-                let json = JSON(data:data! as NSData)
+                let json = JSON(data:data! as! NSData)
                 NSLog("json is %@", json.rawString()!)
                 
                 if json["meta"]["status"]["code"].number == 200 && json["schedule_occurrence"] != nil {
@@ -101,7 +101,7 @@ public class Schedule {
         
         Alamofire.request(.GET,SCHEDULE_ENDPOINT, parameters:["start":start_secs,"duration":duration])
             .response { (req,res,data,err) in
-                let json = JSON(data:data! as NSData)
+                let json = JSON(data:data! as! NSData)
                 NSLog("json is %@", json.rawString()!)
                 
                 var shows: [ScheduleInstance] = []

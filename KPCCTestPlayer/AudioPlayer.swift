@@ -95,6 +95,10 @@ public class AudioPlayer {
     
     var _mode:Streams = .Production
     var _wasInterrupted:Bool = false
+    
+    var _interactionIdx:Int = 0
+    
+    let _assetLoader = AudioPlayerAssetLoader()
 
     //----------
 
@@ -106,11 +110,11 @@ public class AudioPlayer {
         
         self._setStatus(.New)
         
-        // -- watch for interruptions --
+        // -- watch for interruptions -- //
         
         NSNotificationCenter.defaultCenter().addObserverForName(AVAudioSessionInterruptionNotification, object: nil, queue: NSOperationQueue.mainQueue()) { n in
             // FIXME: You can't tell me there isn't a cleaner way to do this...
-            switch AVAudioSessionInterruptionType( rawValue: n.userInfo![AVAudioSessionInterruptionTypeKey] as UInt)! {
+            switch AVAudioSessionInterruptionType( rawValue: n.userInfo![AVAudioSessionInterruptionTypeKey] as! UInt)! {
             case .Began:
                 NSLog("Player interruption began. State was \(self.status.toString())")
                 
@@ -123,7 +127,7 @@ public class AudioPlayer {
             case .Ended:
                 // should we resume?
                 
-                let opts = AVAudioSessionInterruptionOptions( n.userInfo![AVAudioSessionInterruptionOptionKey] as UInt )
+                let opts = AVAudioSessionInterruptionOptions( n.userInfo![AVAudioSessionInterruptionOptionKey] as! UInt )
 
                 if opts == .OptionShouldResume {
                     NSLog("Told we should resume. Previous status was \(self.prevStatus.toString())")
@@ -150,6 +154,7 @@ public class AudioPlayer {
             self._emitEvent("New player instance created for stream \(self._mode.toString())")
             
             let asset = AVURLAsset(URL:NSURL(string:self._mode.toString()),options:nil)
+            asset.resourceLoader.setDelegate(self._assetLoader, queue: self._assetLoader.queue)
             
             let item = AVPlayerItem(asset: asset)
             self._player = AVPlayer(playerItem: item)
@@ -163,28 +168,37 @@ public class AudioPlayer {
                     NSLog("Player failed with error: %@", msg)
                     self.stop()
                 case .ItemFailed:
+                    let err = obj as! NSError
                     NSLog("Item failed with error: \(msg)")
                     self.stop()
                 case .Stalled:
                     NSLog("Playback stalled at \(self._dateFormat.stringFromDate(self.currentDates!.curDate)).")
                     
+                    // stash our stall position and interaction index, so that we can 
+                    // try to resume in the same spot when we see connectivity return
+                    let stallIdx = self._interactionIdx
+                    let stallPosition = self.currentDates?.curDate
+                    
                     self._pobs!.once(.LikelyToKeepUp) { msg,obj in
-                        NSLog("trying to resume playback at stall position.")
-                        if self.currentDates != nil {
-                            self.seekToDate(self.currentDates!.curDate,useTime:true)
-                        } else {
-                            self._player!.play()
+                        // if there's been a user interaction in the meantime, we do a no-op
+                        if stallIdx == self._interactionIdx {
+                            NSLog("trying to resume playback at stall position.")
+                            if stallPosition != nil {
+                                self.seekToDate(stallPosition!,useTime:true)
+                            } else {
+                                self._player!.play()
+                            }
                         }
                     }
                 case .AccessLog:
-                    let log = obj as AVPlayerItemAccessLogEvent
+                    let log = obj as! AVPlayerItemAccessLogEvent
                     NSLog("New access log entry: indicated:\(log.indicatedBitrate) -- switch:\(log.switchBitrate) -- stalls: \(log.numberOfStalls)")
                     
                     for o in self._accessLogObservers {
                         o(log)
                     }
                 case .ErrorLog:
-                    let log = obj as AVPlayerItemErrorLogEvent
+                    let log = obj as! AVPlayerItemErrorLogEvent
                     NSLog("New error log entry \(log.errorStatusCode): \(log.errorComment)")
                     
                     for o in self._errorLogObservers {
@@ -211,7 +225,7 @@ public class AudioPlayer {
             // grab session id from our first access log
             self._pobs?.once(.AccessLog) { msg,obj in
                 // grab session id from the log
-                self._sessionId = (obj as AVPlayerItemAccessLogEvent).playbackSessionID
+                self._sessionId = (obj as! AVPlayerItemAccessLogEvent).playbackSessionID
                 self._emitEvent("Playback session ID is \(self._sessionId)")
                 NSLog("Playback Session ID is %@",self._sessionId!)
             }
@@ -389,6 +403,7 @@ public class AudioPlayer {
     //----------
 
     public func play() -> Bool{
+        self._interactionIdx++
         self._setStatus(.Waiting)
         self.getPlayer().play()
         return true
@@ -397,6 +412,7 @@ public class AudioPlayer {
     //----------
 
     public func pause() -> Bool {
+        self._interactionIdx++
         self._setStatus(.Waiting)
         self.getPlayer().pause()
         return true
@@ -452,6 +468,8 @@ public class AudioPlayer {
             p.pause()
         }
         
+        self._interactionIdx++
+        
         if useTime {
             // compute difference between currentTime and the time we want, and then use seekToTime
             // to try and get there
@@ -459,7 +477,7 @@ public class AudioPlayer {
             let offsetSeconds = date.timeIntervalSinceReferenceDate - p.currentItem.currentDate().timeIntervalSinceReferenceDate
             let seek_time = CMTimeAdd(p.currentItem.currentTime(), CMTimeMakeWithSeconds(offsetSeconds, 1))
             
-            p.currentItem.seekToTime(seek_time, completionHandler: { finished in
+            p.currentItem.seekToTime(seek_time, toleranceBefore:kCMTimeZero, toleranceAfter:kCMTimeZero, completionHandler: { finished in
                 if finished {
                     NSLog("seekToDate (time) landed at %@", self._dateFormat.stringFromDate(p.currentItem.currentDate()))
                     p.play()
@@ -518,6 +536,8 @@ public class AudioPlayer {
             p.pause()
         }
         
+        self._interactionIdx++
+        
         p.currentItem.seekToTime(seek_time, completionHandler: {(finished:Bool) -> Void in
             if finished {
                 NSLog("seekToPercent landed from %2f", percent)
@@ -547,6 +567,8 @@ public class AudioPlayer {
         if p.rate != 0.0 {
             p.pause()
         }
+        
+        self._interactionIdx++
 
         p.currentItem.seekToTime(kCMTimePositiveInfinity) { finished in
             NSLog("Did seekToLive. Landed at %@", self._dateFormat.stringFromDate(p.currentItem.currentDate()))

@@ -132,7 +132,7 @@ class AVObserver: NSObject {
     
     override func observeValueForKeyPath(keyPath: String, ofObject object: AnyObject, change: [NSObject : AnyObject], context: UnsafeMutablePointer<Void>) {
         
-        if object as NSObject == self._player {
+        if object as! NSObject == self._player {
             switch keyPath {
             case "status":
                 switch object.status as AVPlayerStatus {
@@ -156,7 +156,7 @@ class AVObserver: NSObject {
             default:
                 true
             }
-        } else if object as NSObject == self._player.currentItem {
+        } else if object as! NSObject == self._player.currentItem {
             switch keyPath {
             case "status":
                 switch object.status as AVPlayerItemStatus {
