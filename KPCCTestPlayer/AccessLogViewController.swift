@@ -41,7 +41,7 @@ class AccessLogViewController: UIViewController {
         let log = AudioPlayer.sharedInstance.getAccessLog()
         
         if log != nil {
-            //self.logView.text = NSString(data: log!.extendedLogData(), encoding: log!.extendedLogDataStringEncoding)
+            self.logView.text = NSString(data: log!.extendedLogData(), encoding: log!.extendedLogDataStringEncoding) as! String
         }
     }
     
