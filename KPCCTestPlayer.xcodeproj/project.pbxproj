@@ -14,8 +14,6 @@
 		0714CAEB1A5C7992007EB486 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0714CAEA1A5C7992007EB486 /* Images.xcassets */; };
 		0714CAEE1A5C7992007EB486 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0714CAEC1A5C7992007EB486 /* LaunchScreen.xib */; };
 		07321EE81AA7C584009C569D /* AudioPlayerAssetLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07321EE71AA7C584009C569D /* AudioPlayerAssetLoader.swift */; };
-		076537051A8BBC19004E7495 /* Pods-KPCCTestPlayerTests.debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 076537041A8BBC19004E7495 /* Pods-KPCCTestPlayerTests.debug.xcconfig */; };
-		076537071A8BBC20004E7495 /* Pods-KPCCTestPlayerTests.release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 076537061A8BBC20004E7495 /* Pods-KPCCTestPlayerTests.release.xcconfig */; };
 		078A5D971A640FE100A67C41 /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 078A5D961A640FE100A67C41 /* AudioPlayer.swift */; };
 		078A5D991A64120E00A67C41 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 078A5D981A64120E00A67C41 /* AVFoundation.framework */; };
 		079783801A6AA35F00EE559B /* Schedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0797837F1A6AA35F00EE559B /* Schedule.swift */; };
@@ -224,7 +222,7 @@
 		0714CAD31A5C7992007EB486 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0610;
+				LastUpgradeCheck = 0630;
 				ORGANIZATIONNAME = "Eric Richardson";
 				TargetAttributes = {
 					0714CADA1A5C7992007EB486 = {
@@ -277,8 +275,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				076537051A8BBC19004E7495 /* Pods-KPCCTestPlayerTests.debug.xcconfig in Resources */,
-				076537071A8BBC20004E7495 /* Pods-KPCCTestPlayerTests.release.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -12,12 +12,7 @@ import Alamofire
 import MobileCoreServices
 
 public class AudioPlayer {
-    public class var sharedInstance: AudioPlayer {
-        struct Static {
-            static let instance = AudioPlayer()
-        }
-        return Static.instance
-    }
+    public static let sharedInstance = AudioPlayer()
 
     //----------
 
@@ -40,7 +35,7 @@ public class AudioPlayer {
     
     public enum Streams:String {
         case Production = "http://live.scpr.org/sg/kpcc-aac.m3u8?ua=KPCC-EWRTest"
-        case Testing    = "http://streammachine-tmp.scprdev.org/sg/kpcc-aac.m3u8?ua=KPCC-EWRTest"
+        case Testing    = "http://streammachine-test.scprdev.org/sg/kpcc-aac.m3u8?ua=KPCC-EWRTest"
         
         func toString() -> String {
             return self.rawValue
@@ -84,6 +79,7 @@ public class AudioPlayer {
     var _checkingDate: NSDate?
     var _seeking: Bool = false
     
+    // FIXME: Can this be replaced by the interactionIdx?
     var _seekSeq:Int = 0
     
     var _sessionId:String?
@@ -98,7 +94,7 @@ public class AudioPlayer {
     
     var _interactionIdx:Int = 0
     
-    let _assetLoader = AudioPlayerAssetLoader()
+    //let _assetLoader = AudioPlayerAssetLoader()
 
     //----------
 
@@ -154,7 +150,7 @@ public class AudioPlayer {
             self._emitEvent("New player instance created for stream \(self._mode.toString())")
             
             let asset = AVURLAsset(URL:NSURL(string:self._mode.toString()),options:nil)
-            asset.resourceLoader.setDelegate(self._assetLoader, queue: self._assetLoader.queue)
+            //asset.resourceLoader.setDelegate(self._assetLoader, queue: self._assetLoader.queue)
             
             let item = AVPlayerItem(asset: asset)
             self._player = AVPlayer(playerItem: item)
@@ -265,6 +261,7 @@ public class AudioPlayer {
                         seek_range = self._player!.currentItem.seekableTimeRanges[0].CMTimeRangeValue
 
                         // these calculations assume no discontinuities in the playlist data
+                        // FIXME: We really want to get these from the playlist... There has to be a way to get there
                         minDate = NSDate(timeInterval: -1 * (CMTimeGetSeconds(time) - CMTimeGetSeconds(seek_range.start)), sinceDate:curDate)
                         maxDate = NSDate(timeInterval: CMTimeGetSeconds(CMTimeRangeGetEnd(seek_range)) - CMTimeGetSeconds(time), sinceDate:curDate)
                     }
