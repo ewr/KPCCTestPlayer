@@ -11,6 +11,22 @@ import AVFoundation
 import Alamofire
 import MobileCoreServices
 
+public struct AudioPlayerObserver<T> {
+    var observers: [(T) -> Void] = []
+    
+    public mutating func addObserver(o:(T) -> Void) {
+        observers.append(o)
+    }
+    
+    func notify(obj:T) {
+        for o in observers {
+            o(obj)
+        }
+    }
+}
+
+//----------
+
 public class AudioPlayer {
     public static let sharedInstance = AudioPlayer()
 
@@ -68,12 +84,12 @@ public class AudioPlayer {
     
     //----------
 
-    var _observers:             [(StreamDates) -> Void] = []
-    var _showObservers:         [(Schedule.ScheduleInstance?) -> Void] = []
-    var _statusObservers:       [(Statuses) -> Void] = []
-    var _accessLogObservers:    [(AVPlayerItemAccessLogEvent) -> Void] = []
-    var _errorLogObservers:     [(AVPlayerItemErrorLogEvent) -> Void] = []
-    var _eventLogObservers:     [(Event) -> Void] = []
+    public var oTime        = AudioPlayerObserver<StreamDates>()
+    public var oShow        = AudioPlayerObserver<Schedule.ScheduleInstance?>()
+    public var oStatus      = AudioPlayerObserver<Statuses>()
+    public var oAccessLog   = AudioPlayerObserver<AVPlayerItemAccessLogEvent>()
+    public var oErrorLog    = AudioPlayerObserver<AVPlayerItemErrorLogEvent>()
+    public var oEventLog    = AudioPlayerObserver<Event>()
 
     var _currentShow: Schedule.ScheduleInstance? = nil
     var _checkingDate: NSDate?
@@ -190,16 +206,12 @@ public class AudioPlayer {
                     let log = obj as! AVPlayerItemAccessLogEvent
                     NSLog("New access log entry: indicated:\(log.indicatedBitrate) -- switch:\(log.switchBitrate) -- stalls: \(log.numberOfStalls)")
                     
-                    for o in self._accessLogObservers {
-                        o(log)
-                    }
+                    self.oAccessLog.notify(log)
                 case .ErrorLog:
                     let log = obj as! AVPlayerItemErrorLogEvent
                     NSLog("New error log entry \(log.errorStatusCode): \(log.errorComment)")
                     
-                    for o in self._errorLogObservers {
-                        o(log)
-                    }
+                    self.oErrorLog.notify(log)
                 case .Playing:
                     self._setStatus(.Playing)
                 case .Paused:
@@ -271,9 +283,7 @@ public class AudioPlayer {
                         
                         self.currentDates = status
                         
-                        for o in self._observers {
-                            o(status)
-                        }
+                        self.oTime.notify(status)
                         
                         self._checkForNewShow(curDate, from_seek:false)
                     }
@@ -302,9 +312,7 @@ public class AudioPlayer {
     
     private func _emitEvent(msg:String) -> Void {
         let event = Event(message: msg, time: NSDate())
-        for o in self._eventLogObservers {
-            o(event)
-        }
+        self.oEventLog.notify(event)
     }
     
     //----------
@@ -315,10 +323,7 @@ public class AudioPlayer {
             self.status = s
             
             self._emitEvent("Player status is now \(s.toString())")
-            
-            for o in self._statusObservers {
-                o(s)
-            }
+            self.oStatus.notify(s)
         }
     }
     
@@ -340,42 +345,6 @@ public class AudioPlayer {
         } else {
             return nil
         }
-    }
-
-    //----------
-
-    public func observeTime(observer:(StreamDates) -> Void) -> Void {
-        self._observers.append(observer)
-    }
-
-    //----------
-
-    public func onShowChange(observer:(Schedule.ScheduleInstance?) -> Void) -> Void {
-        self._showObservers.append(observer)
-    }
-
-    //----------
-
-    public func onStatusChange(observer:(Statuses) -> Void) -> Void {
-        self._statusObservers.append(observer)
-    }
-    
-    //----------
-    
-    public func onAccessLog(obs:(AVPlayerItemAccessLogEvent) -> Void) -> Void {
-        self._accessLogObservers.append(obs)
-    }
-    
-    //----------
-
-    public func onErrorLog(obs:(AVPlayerItemErrorLogEvent) -> Void) -> Void {
-        self._errorLogObservers.append(obs)
-    }
-    
-    //----------
-    
-    public func onEventLog(obs:(Event) -> Void) -> Void {
-        self._eventLogObservers.append(obs)
     }
 
     //----------
@@ -608,10 +577,7 @@ public class AudioPlayer {
                     NSLog("_checkForNewShow failed to get show")
                 }
 
-                // update any observers
-                for o in self._showObservers {
-                    o(show)
-                }
+                self.oShow.notify(show)
             }
         }
 

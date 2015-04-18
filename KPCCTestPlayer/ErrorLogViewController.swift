@@ -20,7 +20,7 @@ class ErrorLogViewController: UIViewController {
         // render current error log into the text view
         self._updateLog()
         
-        AudioPlayer.sharedInstance.onErrorLog() { log in
+        AudioPlayer.sharedInstance.oErrorLog.addObserver() { log in
             self._updateLog()
             
             //self.tabBarItem.badgeValue = "\(self.eventCount++)"

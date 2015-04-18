@@ -19,7 +19,7 @@ class AccessLogViewController: UIViewController {
         // render current error log into the text view
         self._updateLog()
         
-        AudioPlayer.sharedInstance.onAccessLog() { log in
+        AudioPlayer.sharedInstance.oAccessLog.addObserver() { log in
             self._updateLog()
             //self.tabBarItem.badgeValue = "\(self.eventCount++)"
             //NSLog("set accessLog badgeValue to \(self.tabBarItem.badgeValue)")

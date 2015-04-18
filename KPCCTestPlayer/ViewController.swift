@@ -58,7 +58,7 @@ class ViewController: UIViewController {
 
         //---
 
-        AudioPlayer.sharedInstance.observeTime() { (status:AudioPlayer.StreamDates) -> Void in
+        AudioPlayer.sharedInstance.oTime.addObserver() { (status:AudioPlayer.StreamDates) -> Void in
             // set current time display
             self.timeDisplay.text = formatter.stringFromDate(status.curDate)
 
@@ -90,7 +90,7 @@ class ViewController: UIViewController {
         
         // AudioPlayer will tell us when the playhead crosses into a new show
 
-        AudioPlayer.sharedInstance.onShowChange() { show in
+        AudioPlayer.sharedInstance.oShow.addObserver() { show in
             self.setShowInfoFromShow(show)
             self.playingShow = show
             
@@ -103,7 +103,7 @@ class ViewController: UIViewController {
         
         //---
         
-        AudioPlayer.sharedInstance.onStatusChange() { status in
+        AudioPlayer.sharedInstance.oStatus.addObserver() { status in
             NSLog("view player status is %@",status.toString())
             
             switch status {
@@ -137,7 +137,7 @@ class ViewController: UIViewController {
         // this could easily be done in the observer above, but setting our own 
         // allows for less code duplication in play/pause functionality
         
-        AudioPlayer.sharedInstance.onStatusChange() { status in
+        AudioPlayer.sharedInstance.oStatus.addObserver() { status in
             switch status {
             case .Playing:
                 // show pause button
@@ -168,7 +168,7 @@ class ViewController: UIViewController {
         
         // -- watch for variant changes -- //
         
-        AudioPlayer.sharedInstance.onAccessLog() { log in
+        AudioPlayer.sharedInstance.oAccessLog.addObserver() { log in
             let kbrate = String(format:"%d",Int(log.indicatedBitrate / 1000))
             
             
