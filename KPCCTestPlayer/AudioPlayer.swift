@@ -111,6 +111,7 @@ public class AudioPlayer {
     var _interactionIdx:Int = 0
     
     //let _assetLoader = AudioPlayerAssetLoader()
+    let _reachability = Reachability.reachabilityForInternetConnection()
 
     //----------
 
@@ -156,6 +157,31 @@ public class AudioPlayer {
                 true
             }
         }
+        
+        // -- watch for Reachability -- //
+        
+        switch self._reachability.currentReachabilityStatus {
+        case .ReachableViaWiFi:
+            NSLog("Init reach is WIFI")
+        case .ReachableViaWWAN:
+            NSLog("Init reach is cellular")
+        case .NotReachable:
+            NSLog("Init is unreachable")
+        }
+        
+        self._reachability.whenReachable = { r in
+            if r.isReachableViaWiFi() {
+                println("Reachable via WiFi")
+            } else {
+                println("Reachable via Cellular")
+            }
+        }
+        
+        self._reachability.whenUnreachable = { r in
+            println("Not reachable")
+        }
+        
+        self._reachability.startNotifier()
     }
 
     //----------

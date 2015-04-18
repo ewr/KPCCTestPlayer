@@ -18,6 +18,7 @@
 		078A5D991A64120E00A67C41 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 078A5D981A64120E00A67C41 /* AVFoundation.framework */; };
 		079783801A6AA35F00EE559B /* Schedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0797837F1A6AA35F00EE559B /* Schedule.swift */; };
 		07A6B1CD1A8663D200C65957 /* AudioPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A6B1CC1A8663D200C65957 /* AudioPlayerTests.swift */; };
+		07A845161AE2F8D100FC7C41 /* Reachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A845151AE2F8D100FC7C41 /* Reachability.swift */; };
 		07CC51951A753B3200E53E8B /* av_observer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07CC51941A753B3200E53E8B /* av_observer.swift */; };
 		07E97B491A98F48F00A6B549 /* AccessLogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07E97B481A98F48F00A6B549 /* AccessLogViewController.swift */; };
 		07E97B4B1A98FD9E00A6B549 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07E97B4A1A98FD9E00A6B549 /* SettingsViewController.swift */; };
@@ -54,6 +55,7 @@
 		078A5D981A64120E00A67C41 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		0797837F1A6AA35F00EE559B /* Schedule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Schedule.swift; sourceTree = "<group>"; };
 		07A6B1CC1A8663D200C65957 /* AudioPlayerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayerTests.swift; sourceTree = "<group>"; };
+		07A845151AE2F8D100FC7C41 /* Reachability.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Reachability.swift; sourceTree = "<group>"; };
 		07CC51941A753B3200E53E8B /* av_observer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = av_observer.swift; sourceTree = "<group>"; };
 		07E97B481A98F48F00A6B549 /* AccessLogViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccessLogViewController.swift; sourceTree = "<group>"; };
 		07E97B4A1A98FD9E00A6B549 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
@@ -123,6 +125,7 @@
 				07321EE71AA7C584009C569D /* AudioPlayerAssetLoader.swift */,
 				07CC51941A753B3200E53E8B /* av_observer.swift */,
 				0797837F1A6AA35F00EE559B /* Schedule.swift */,
+				07A845151AE2F8D100FC7C41 /* Reachability.swift */,
 			);
 			path = KPCCTestPlayer;
 			sourceTree = "<group>";
@@ -385,6 +388,7 @@
 				0714CAE41A5C7992007EB486 /* KPCCTestPlayer.xcdatamodeld in Sources */,
 				07321EE81AA7C584009C569D /* AudioPlayerAssetLoader.swift in Sources */,
 				07CC51951A753B3200E53E8B /* av_observer.swift in Sources */,
+				07A845161AE2F8D100FC7C41 /* Reachability.swift in Sources */,
 				079783801A6AA35F00EE559B /* Schedule.swift in Sources */,
 				078A5D971A640FE100A67C41 /* AudioPlayer.swift in Sources */,
 				07E97B4B1A98FD9E00A6B549 /* SettingsViewController.swift in Sources */,
