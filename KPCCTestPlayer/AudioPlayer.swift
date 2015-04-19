@@ -31,6 +31,16 @@ public class AudioPlayer {
     public static let sharedInstance = AudioPlayer()
 
     //----------
+    
+    public enum NetworkStatus:String {
+        case Unknown = "Unknown", NotReachable = "No Connection", WIFI = "WIFI", Cellular = "Cellular"
+        
+        func toString() -> String {
+            return self.rawValue
+        }
+    }
+    
+    //----------
 
     public enum Statuses:String {
         case New = "New", Stopped = "Stopped", Playing = "Playing", Waiting = "Waiting", Seeking = "Seeking", Paused = "Paused", Error = "Error"
@@ -61,6 +71,8 @@ public class AudioPlayer {
     public typealias finishCallback = (Bool) -> Void
     
     //----------
+    
+    let iOS8 = floor(NSFoundationVersionNumber) > floor(NSFoundationVersionNumber_iOS_7_1)
 
     let NORMAL_REWIND = 4 * 60 * 60
 
@@ -90,6 +102,7 @@ public class AudioPlayer {
     public var oAccessLog   = AudioPlayerObserver<AVPlayerItemAccessLogEvent>()
     public var oErrorLog    = AudioPlayerObserver<AVPlayerItemErrorLogEvent>()
     public var oEventLog    = AudioPlayerObserver<Event>()
+    public var oNetwork     = AudioPlayerObserver<NetworkStatus>()
 
     var _currentShow: Schedule.ScheduleInstance? = nil
     var _checkingDate: NSDate?
@@ -110,8 +123,11 @@ public class AudioPlayer {
     
     var _interactionIdx:Int = 0
     
+    public var reduceBandwidthOnCellular:Bool = true
+    
     //let _assetLoader = AudioPlayerAssetLoader()
     let _reachability = Reachability.reachabilityForInternetConnection()
+    var _networkStatus: NetworkStatus = .Unknown
 
     //----------
 
@@ -160,32 +176,68 @@ public class AudioPlayer {
         
         // -- watch for Reachability -- //
         
-        switch self._reachability.currentReachabilityStatus {
-        case .ReachableViaWiFi:
-            NSLog("Init reach is WIFI")
-        case .ReachableViaWWAN:
-            NSLog("Init reach is cellular")
-        case .NotReachable:
-            NSLog("Init is unreachable")
-        }
-        
         self._reachability.whenReachable = { r in
-            if r.isReachableViaWiFi() {
-                println("Reachable via WiFi")
-            } else {
-                println("Reachable via Cellular")
-            }
+            self.setNetworkStatus()
         }
         
         self._reachability.whenUnreachable = { r in
-            println("Not reachable")
+            self.setNetworkStatus()
+        }
+
+        self._reachability.startNotifier()
+        
+        // and a check right now...
+        self.setNetworkStatus()
+        
+        // -- set up bandwidth limiter -- //
+        
+        self.oNetwork.addObserver() { s in
+            if self.iOS8 && self.reduceBandwidthOnCellular {
+                if self._player?.currentItem != nil {
+                    switch s {
+                    case .Cellular:
+                        // turn limit on
+                        self._emitEvent("Limiting bandwidth")
+                        self._player!.currentItem.preferredPeakBitRate = 1000
+                    case .WIFI:
+                        // turn limit off
+                        self._emitEvent("Turning off bandwidth limit.")
+                        self._player!.currentItem.preferredPeakBitRate = 0
+                    default:
+                        // don't make changes
+                        true
+                    }
+                }
+            }
+        }
+    }
+    
+    //----------
+    
+    private func setNetworkStatus() {
+        var s:NetworkStatus
+        
+        switch self._reachability.currentReachabilityStatus {
+        case .ReachableViaWiFi:
+            NSLog("Init reach is WIFI")
+            
+            s = .WIFI
+        case .ReachableViaWWAN:
+            NSLog("Init reach is cellular")
+            s = .Cellular
+        case .NotReachable:
+            NSLog("Init is unreachable")
+            s = .NotReachable
         }
         
-        self._reachability.startNotifier()
+        if s != self._networkStatus {
+            self._networkStatus = s
+            self.oNetwork.notify(s)
+        }
     }
-
+    
     //----------
-
+    
     private func getPlayer() -> AVPlayer {
         if (self._player == nil) {
             NSLog("Creating new Audio Player instance for stream \(self._mode.toString())")
@@ -196,6 +248,12 @@ public class AudioPlayer {
             
             let item = AVPlayerItem(asset: asset)
             self._player = AVPlayer(playerItem: item)
+            
+            // should we be limiting bandwidth?
+            if self.iOS8 && self.reduceBandwidthOnCellular && self._networkStatus == .Cellular {
+                self._emitEvent("Turning on bandwidth limiter for new player")
+                item.preferredPeakBitRate = 1000
+            }
             
             // set up an observer for player / item status
             self._pobs = AVObserver(player:self._player!) { status,msg,obj in

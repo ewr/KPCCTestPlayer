@@ -230,7 +230,7 @@
 				TargetAttributes = {
 					0714CADA1A5C7992007EB486 = {
 						CreatedOnToolsVersion = 6.1.1;
-						DevelopmentTeam = 6N8RT3FVF6;
+						DevelopmentTeam = 7QRHY3UX4S;
 						SystemCapabilities = {
 							com.apple.BackgroundModes = {
 								enabled = 1;
@@ -539,7 +539,7 @@
 			baseConfigurationReference = C0E203CFDC7C7D9BD0CA02BD /* Pods.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				DEFINES_MODULE = YES;
 				FRAMEWORK_SEARCH_PATHS = (
