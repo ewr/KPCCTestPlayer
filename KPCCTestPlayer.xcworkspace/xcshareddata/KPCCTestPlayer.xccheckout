@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>5F4BECB0-BEAA-496D-8C25-13B23CB05F52</string>
+	<key>IDESourceControlProjectName</key>
+	<string>KPCCTestPlayer</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>DAA86430296553F96F42865C04C5B97F1D4C4430</key>
+		<string>github.com:ewr/KPCCTestPlayer.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>KPCCTestPlayer.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>DAA86430296553F96F42865C04C5B97F1D4C4430</key>
+		<string>..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>github.com:ewr/KPCCTestPlayer.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>DAA86430296553F96F42865C04C5B97F1D4C4430</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>DAA86430296553F96F42865C04C5B97F1D4C4430</string>
+			<key>IDESourceControlWCCName</key>
+			<string>KPCCTestPlayer</string>
+		</dict>
+	</array>
+</dict>
+</plist>
