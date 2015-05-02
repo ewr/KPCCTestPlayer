@@ -19,7 +19,6 @@ class EventLog {
     
     init() {
         self._player.oEventLog.addObserver() { event in
-            NSLog("adding event to errorlog events. Now \(self._events.count).")
             self._events.append(event)
             
             if self._events.count > 100 {

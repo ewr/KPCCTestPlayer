@@ -75,6 +75,8 @@ public class AudioPlayer {
     let iOS8 = floor(NSFoundationVersionNumber) > floor(NSFoundationVersionNumber_iOS_7_1)
 
     let NORMAL_REWIND = 4 * 60 * 60
+    
+    let SEEK_TOLERANCE = 5
 
     var _player: AVPlayer?
     var _pobs: AVObserver?
@@ -106,10 +108,6 @@ public class AudioPlayer {
 
     var _currentShow: Schedule.ScheduleInstance? = nil
     var _checkingDate: NSDate?
-    var _seeking: Bool = false
-    
-    // FIXME: Can this be replaced by the interactionIdx?
-    var _seekSeq:Int = 0
     
     var _sessionId:String?
     
@@ -482,23 +480,25 @@ public class AudioPlayer {
 
     //----------
 
-    public func seekToDate(date: NSDate,retries:Int = 3,useTime:Bool = false) -> Bool {
+    public func seekToDate(date: NSDate,retries:Int = 2,useTime:Bool = false) -> Bool {
+        let fsig = "seekToDate (" + ( useTime ? "time" : "date" ) + ") "
+        
         // do we think we can do this?
         // FIXME: check currentDates if we have them
-        self._emitEvent("seekToDate called for \(self._dateFormat.stringFromDate(date))")
+        self._emitEvent(fsig + "called for \(self._dateFormat.stringFromDate(date))")
         
         // get a seek sequence number
-        let seek_id = ++self._seekSeq
+        let seek_id = ++self._interactionIdx
 
         let p = self.getPlayer()
         
         if p.status != AVPlayerStatus.ReadyToPlay {
             // we need to wait for ready before playing or seeking
-            self._emitEvent("seekToDate: Waiting for player ReadyToPlay")
+            self._emitEvent(fsig + "Waiting for player ReadyToPlay")
             self._pobs?.once(.ItemReady) { msg,obj in
-                self._emitEvent("seekToDate: Should be ready to play...")
+                self._emitEvent(fsig + "Should be ready to play...")
                 
-                if self._seekSeq == seek_id {
+                if self._interactionIdx == seek_id {
                     // a cold seek with seekToDate never works, so start with seekToTime
                     self.seekToDate(date,useTime:true)
                     return Void()
@@ -512,58 +512,68 @@ public class AudioPlayer {
 
         // we'll pause, seek, then play
         if p.rate != 0.0 {
-            self._emitEvent("Pausing to seek")
+            self._emitEvent(fsig+"Pausing to seek")
             p.pause()
         }
         
-        self._interactionIdx++
-        
-        if useTime {
-            // compute difference between currentTime and the time we want, and then use seekToTime
-            // to try and get there
+        // Set up common code for testing our landing position
+        let testLanding = { (finished:Bool) -> Void in
             
-            let offsetSeconds = date.timeIntervalSinceReferenceDate - p.currentItem.currentDate().timeIntervalSinceReferenceDate
-            let seek_time = CMTimeAdd(p.currentItem.currentTime(), CMTimeMakeWithSeconds(offsetSeconds, 1))
-            
-            p.currentItem.seekToTime(seek_time, toleranceBefore:kCMTimeZero, toleranceAfter:kCMTimeZero, completionHandler: { finished in
-                if finished {
-                    self._emitEvent("seekToDate (time) landed at \(self._dateFormat.stringFromDate(p.currentItem.currentDate()))")
+            if finished {
+                // how close did we get?
+                let landed = p.currentItem.currentDate()
+                
+                self._emitEvent(fsig+"landed at \(self._dateFormat.stringFromDate(landed))")
+                
+                if abs( Int(date.timeIntervalSinceReferenceDate - landed.timeIntervalSinceReferenceDate) ) <= self.SEEK_TOLERANCE {
+                    // success! start playing
                     p.play()
                 } else {
-                    self._emitEvent("seekToDate (time) did not finish")
-                }
-            })
-            
-        } else {
-            // use seekToDate
-            
-            p.currentItem.seekToDate(date, completionHandler: { finished in
-                if finished {
-                    self._emitEvent("seekToDate landed at \(self._dateFormat.stringFromDate(p.currentItem.currentDate()))")
-                    self._seeking = false
-                    
-                    // FIXME: Need to see if we landed where we should have. If not, try again
-                    
-                    // start playing
-                    p.play()
-                } else {
-                    self._emitEvent("seekToDate did not finish")
-                    
-                    // if we get here, but our seek_id is still the current one, we should retry. If 
-                    // id has changed, there's another seek operation started and we should stop
-                    if self._seekSeq == seek_id {
+                    // not quite... try again, as long as we have retries
+                    if self._interactionIdx == seek_id {
                         switch retries {
                         case 0:
-                            self._emitEvent("seekToDate is out of retries")
-
+                            self._emitEvent("seekToDate ran out of retries. Playing from here.")
+                            p.play()
                         case 1:
+                            // last try always uses time
                             self.seekToDate(date, retries: retries-1, useTime:true)
                         default:
                             self.seekToDate(date, retries: retries-1)
                         }
                     }
                 }
-            })
+            } else {
+                self._emitEvent(fsig+"did not finish.")
+                
+                // if we get here, but our seek_id is still the current one, we should retry. If
+                // id has changed, there's another seek operation started and we should stop
+                if self._interactionIdx == seek_id {
+                    switch retries {
+                    case 0:
+                        self._emitEvent("seekToDate is out of retries")
+                        
+                    case 1:
+                        self.seekToDate(date, retries: retries-1, useTime:true)
+                    default:
+                        self.seekToDate(date, retries: retries-1)
+                    }
+                }
+            }
+        }
+        
+        // SEEK!
+        
+        // how far are we trying to go?
+        let offsetSeconds = date.timeIntervalSinceReferenceDate - p.currentItem.currentDate().timeIntervalSinceReferenceDate
+        
+        // we'll cheat and use time for short seeks, which seem to sometimes leave seekToDate stuck playing a loop
+        if useTime || abs(offsetSeconds) < 60 {
+            let seek_time = CMTimeAdd(p.currentItem.currentTime(), CMTimeMakeWithSeconds(offsetSeconds, 1))
+            p.currentItem.seekToTime(seek_time, toleranceBefore:kCMTimeZero, toleranceAfter:kCMTimeZero, completionHandler:testLanding)
+        } else {
+            // use seekToDate
+            p.currentItem.seekToDate(date, completionHandler:testLanding)
         }
 
         return true
@@ -572,7 +582,25 @@ public class AudioPlayer {
     //----------
 
     public func seekToPercent(percent: Float64) -> Bool {
+        let str_per = String(format:"%2f", percent)
+        
+        self._emitEvent("seekToPercent called for \(str_per)")
+        
+        let seq = ++self._interactionIdx
+        
         let p = self.getPlayer()
+        if p.status != AVPlayerStatus.ReadyToPlay {
+            // we need to wait for ready before playing or seeking
+            self._emitEvent("seekToPercent: Waiting for player ReadyToPlay")
+            self._pobs?.once(.ItemReady) { msg,obj in
+                if self._interactionIdx == seq {
+                    self._emitEvent("seekToPercent: Seeking now that player is ready.")
+                    self.seekToPercent(percent)
+                }
+            }
+            
+            return true
+        }
 
         var seek_range = p.currentItem.seekableTimeRanges[0].CMTimeRangeValue
 
@@ -584,11 +612,9 @@ public class AudioPlayer {
             p.pause()
         }
         
-        self._interactionIdx++
-        
         p.currentItem.seekToTime(seek_time, completionHandler: {(finished:Bool) -> Void in
             if finished {
-                let str_per = String(format:"%2f", percent)
+                
                 self._emitEvent("seekToPercent landed from \(str_per)")
                 p.play()
             }
@@ -602,12 +628,18 @@ public class AudioPlayer {
     public func seekToLive(completionHandler:finishCallback) -> Void {
         let p = self.getPlayer()
         
+        self._emitEvent("seekToLive called")
+        
+        let seq = ++self._interactionIdx
+        
         if p.status != AVPlayerStatus.ReadyToPlay {
             // we need to wait for ready before playing or seeking
             self._emitEvent("seekToLive: Waiting for player ReadyToPlay")
             self._pobs?.once(.ItemReady) { msg,obj in
-                self._emitEvent("seekToLive: Seeking now that player is ready.")
-                self.seekToLive(completionHandler)
+                if self._interactionIdx == seq {
+                    self._emitEvent("seekToLive: Seeking now that player is ready.")
+                    self.seekToLive(completionHandler)
+                }
             }
             
             return
@@ -616,8 +648,6 @@ public class AudioPlayer {
         if p.rate != 0.0 {
             p.pause()
         }
-        
-        self._interactionIdx++
 
         p.currentItem.seekToTime(kCMTimePositiveInfinity) { finished in
             self._emitEvent("seekToLive landed at \(self._dateFormat.stringFromDate(p.currentItem.currentDate()))")
