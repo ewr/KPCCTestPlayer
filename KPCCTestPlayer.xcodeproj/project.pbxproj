@@ -14,6 +14,8 @@
 		0714CAEB1A5C7992007EB486 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0714CAEA1A5C7992007EB486 /* Images.xcassets */; };
 		0714CAEE1A5C7992007EB486 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0714CAEC1A5C7992007EB486 /* LaunchScreen.xib */; };
 		07321EE81AA7C584009C569D /* AudioPlayerAssetLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07321EE71AA7C584009C569D /* AudioPlayerAssetLoader.swift */; };
+		0740685B1AF53BCD00AC0A9C /* EventLogCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0740685A1AF53BCD00AC0A9C /* EventLogCell.swift */; };
+		0740685D1AF540FD00AC0A9C /* EventLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0740685C1AF540FD00AC0A9C /* EventLog.swift */; };
 		078A5D971A640FE100A67C41 /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 078A5D961A640FE100A67C41 /* AudioPlayer.swift */; };
 		078A5D991A64120E00A67C41 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 078A5D981A64120E00A67C41 /* AVFoundation.framework */; };
 		079783801A6AA35F00EE559B /* Schedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0797837F1A6AA35F00EE559B /* Schedule.swift */; };
@@ -22,7 +24,7 @@
 		07CC51951A753B3200E53E8B /* av_observer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07CC51941A753B3200E53E8B /* av_observer.swift */; };
 		07E97B491A98F48F00A6B549 /* AccessLogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07E97B481A98F48F00A6B549 /* AccessLogViewController.swift */; };
 		07E97B4B1A98FD9E00A6B549 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07E97B4A1A98FD9E00A6B549 /* SettingsViewController.swift */; };
-		07E97B4F1A993AEF00A6B549 /* ErrorLogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07E97B4E1A993AEF00A6B549 /* ErrorLogViewController.swift */; };
+		07E97B4F1A993AEF00A6B549 /* EventLogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07E97B4E1A993AEF00A6B549 /* EventLogViewController.swift */; };
 		8FD23B5C59072D5F7B9AE57E /* Pods.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B63AF27C66A6E54DA6CA7FF1 /* Pods.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		AFCA081B6F4B7A8D0AF1A44D /* Pods_KPCCTestPlayerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE84C4F9D006DD8EC3E6BDB7 /* Pods_KPCCTestPlayerTests.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 /* End PBXBuildFile section */
@@ -49,6 +51,8 @@
 		0714CAF31A5C7992007EB486 /* KPCCTestPlayerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KPCCTestPlayerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0714CAF81A5C7992007EB486 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		07321EE71AA7C584009C569D /* AudioPlayerAssetLoader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayerAssetLoader.swift; sourceTree = "<group>"; };
+		0740685A1AF53BCD00AC0A9C /* EventLogCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventLogCell.swift; sourceTree = "<group>"; };
+		0740685C1AF540FD00AC0A9C /* EventLog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventLog.swift; sourceTree = "<group>"; };
 		076537041A8BBC19004E7495 /* Pods-KPCCTestPlayerTests.debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "Pods-KPCCTestPlayerTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-KPCCTestPlayerTests/Pods-KPCCTestPlayerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		076537061A8BBC20004E7495 /* Pods-KPCCTestPlayerTests.release.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "Pods-KPCCTestPlayerTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-KPCCTestPlayerTests/Pods-KPCCTestPlayerTests.release.xcconfig"; sourceTree = "<group>"; };
 		078A5D961A640FE100A67C41 /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
@@ -59,7 +63,7 @@
 		07CC51941A753B3200E53E8B /* av_observer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = av_observer.swift; sourceTree = "<group>"; };
 		07E97B481A98F48F00A6B549 /* AccessLogViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccessLogViewController.swift; sourceTree = "<group>"; };
 		07E97B4A1A98FD9E00A6B549 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
-		07E97B4E1A993AEF00A6B549 /* ErrorLogViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ErrorLogViewController.swift; sourceTree = "<group>"; };
+		07E97B4E1A993AEF00A6B549 /* EventLogViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventLogViewController.swift; sourceTree = "<group>"; };
 		B63AF27C66A6E54DA6CA7FF1 /* Pods.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0E203CFDC7C7D9BD0CA02BD /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 		DE84C4F9D006DD8EC3E6BDB7 /* Pods_KPCCTestPlayerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KPCCTestPlayerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -114,7 +118,8 @@
 				0714CAE01A5C7992007EB486 /* AppDelegate.swift */,
 				0714CAE51A5C7992007EB486 /* ViewController.swift */,
 				07E97B481A98F48F00A6B549 /* AccessLogViewController.swift */,
-				07E97B4E1A993AEF00A6B549 /* ErrorLogViewController.swift */,
+				07E97B4E1A993AEF00A6B549 /* EventLogViewController.swift */,
+				0740685A1AF53BCD00AC0A9C /* EventLogCell.swift */,
 				07E97B4A1A98FD9E00A6B549 /* SettingsViewController.swift */,
 				0714CAE71A5C7992007EB486 /* Main.storyboard */,
 				0714CAEA1A5C7992007EB486 /* Images.xcassets */,
@@ -126,6 +131,7 @@
 				07CC51941A753B3200E53E8B /* av_observer.swift */,
 				0797837F1A6AA35F00EE559B /* Schedule.swift */,
 				07A845151AE2F8D100FC7C41 /* Reachability.swift */,
+				0740685C1AF540FD00AC0A9C /* EventLog.swift */,
 			);
 			path = KPCCTestPlayer;
 			sourceTree = "<group>";
@@ -382,8 +388,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				0714CAE61A5C7992007EB486 /* ViewController.swift in Sources */,
+				0740685D1AF540FD00AC0A9C /* EventLog.swift in Sources */,
+				0740685B1AF53BCD00AC0A9C /* EventLogCell.swift in Sources */,
 				0714CAE11A5C7992007EB486 /* AppDelegate.swift in Sources */,
-				07E97B4F1A993AEF00A6B549 /* ErrorLogViewController.swift in Sources */,
+				07E97B4F1A993AEF00A6B549 /* EventLogViewController.swift in Sources */,
 				07E97B491A98F48F00A6B549 /* AccessLogViewController.swift in Sources */,
 				0714CAE41A5C7992007EB486 /* KPCCTestPlayer.xcdatamodeld in Sources */,
 				07321EE81AA7C584009C569D /* AudioPlayerAssetLoader.swift in Sources */,

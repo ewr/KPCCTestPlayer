@@ -240,7 +240,6 @@ public class AudioPlayer {
     
     private func getPlayer() -> AVPlayer {
         if (self._player == nil) {
-            NSLog("Creating new Audio Player instance for stream \(self._mode.toString())")
             self._emitEvent("New player instance created for stream \(self._mode.toString())")
             
             let asset = AVURLAsset(URL:NSURL(string:self._mode.toString()),options:nil)
@@ -257,18 +256,18 @@ public class AudioPlayer {
             
             // set up an observer for player / item status
             self._pobs = AVObserver(player:self._player!) { status,msg,obj in
-                self._emitEvent(msg)
+                //self._emitEvent(msg)
                 
                 switch status {
                 case .PlayerFailed:
-                    NSLog("Player failed with error: %@", msg)
+                    self._emitEvent("Player failed with error: \(msg)")
                     self.stop()
                 case .ItemFailed:
                     let err = obj as! NSError
-                    NSLog("Item failed with error: \(msg)")
+                    self._emitEvent("Item failed with error: \(msg)")
                     self.stop()
                 case .Stalled:
-                    NSLog("Playback stalled at \(self._dateFormat.stringFromDate(self.currentDates!.curDate)).")
+                    self._emitEvent("Playback stalled at \(self._dateFormat.stringFromDate(self.currentDates!.curDate)).")
                     
                     // stash our stall position and interaction index, so that we can 
                     // try to resume in the same spot when we see connectivity return
@@ -278,7 +277,7 @@ public class AudioPlayer {
                     self._pobs!.once(.LikelyToKeepUp) { msg,obj in
                         // if there's been a user interaction in the meantime, we do a no-op
                         if stallIdx == self._interactionIdx {
-                            NSLog("trying to resume playback at stall position.")
+                            self._emitEvent("trying to resume playback at stall position.")
                             if stallPosition != nil {
                                 self.seekToDate(stallPosition!,useTime:true)
                             } else {
@@ -288,12 +287,12 @@ public class AudioPlayer {
                     }
                 case .AccessLog:
                     let log = obj as! AVPlayerItemAccessLogEvent
-                    NSLog("New access log entry: indicated:\(log.indicatedBitrate) -- switch:\(log.switchBitrate) -- stalls: \(log.numberOfStalls)")
+                    self._emitEvent("New access log entry: indicated:\(log.indicatedBitrate) -- switch:\(log.switchBitrate) -- stalls: \(log.numberOfStalls)")
                     
                     self.oAccessLog.notify(log)
                 case .ErrorLog:
                     let log = obj as! AVPlayerItemErrorLogEvent
-                    NSLog("New error log entry \(log.errorStatusCode): \(log.errorComment)")
+                    self._emitEvent("New error log entry \(log.errorStatusCode): \(log.errorComment)")
                     
                     self.oErrorLog.notify(log)
                 case .Playing:
@@ -319,7 +318,6 @@ public class AudioPlayer {
                 // grab session id from the log
                 self._sessionId = (obj as! AVPlayerItemAccessLogEvent).playbackSessionID
                 self._emitEvent("Playback session ID is \(self._sessionId)")
-                NSLog("Playback Session ID is %@",self._sessionId!)
             }
             
             let av = AVAudioSession.sharedInstance()
@@ -487,7 +485,7 @@ public class AudioPlayer {
     public func seekToDate(date: NSDate,retries:Int = 3,useTime:Bool = false) -> Bool {
         // do we think we can do this?
         // FIXME: check currentDates if we have them
-        NSLog("seekToDate called for %@",self._dateFormat.stringFromDate(date))
+        self._emitEvent("seekToDate called for \(self._dateFormat.stringFromDate(date))")
         
         // get a seek sequence number
         let seek_id = ++self._seekSeq
@@ -496,9 +494,9 @@ public class AudioPlayer {
         
         if p.status != AVPlayerStatus.ReadyToPlay {
             // we need to wait for ready before playing or seeking
-            NSLog("Waiting for player ReadyToPlay")
+            self._emitEvent("seekToDate: Waiting for player ReadyToPlay")
             self._pobs?.once(.ItemReady) { msg,obj in
-                NSLog("Should be ready to play...")
+                self._emitEvent("seekToDate: Should be ready to play...")
                 
                 if self._seekSeq == seek_id {
                     // a cold seek with seekToDate never works, so start with seekToTime
@@ -514,7 +512,7 @@ public class AudioPlayer {
 
         // we'll pause, seek, then play
         if p.rate != 0.0 {
-            NSLog("Pausing to seek")
+            self._emitEvent("Pausing to seek")
             p.pause()
         }
         
@@ -529,10 +527,10 @@ public class AudioPlayer {
             
             p.currentItem.seekToTime(seek_time, toleranceBefore:kCMTimeZero, toleranceAfter:kCMTimeZero, completionHandler: { finished in
                 if finished {
-                    NSLog("seekToDate (time) landed at %@", self._dateFormat.stringFromDate(p.currentItem.currentDate()))
+                    self._emitEvent("seekToDate (time) landed at \(self._dateFormat.stringFromDate(p.currentItem.currentDate()))")
                     p.play()
                 } else {
-                    NSLog("seekToDate (time) did not finish")
+                    self._emitEvent("seekToDate (time) did not finish")
                 }
             })
             
@@ -541,7 +539,7 @@ public class AudioPlayer {
             
             p.currentItem.seekToDate(date, completionHandler: { finished in
                 if finished {
-                    NSLog("seekToDate landed at %@", self._dateFormat.stringFromDate(p.currentItem.currentDate()))
+                    self._emitEvent("seekToDate landed at \(self._dateFormat.stringFromDate(p.currentItem.currentDate()))")
                     self._seeking = false
                     
                     // FIXME: Need to see if we landed where we should have. If not, try again
@@ -549,14 +547,14 @@ public class AudioPlayer {
                     // start playing
                     p.play()
                 } else {
-                    NSLog("seekToDate did not finish")
+                    self._emitEvent("seekToDate did not finish")
                     
                     // if we get here, but our seek_id is still the current one, we should retry. If 
                     // id has changed, there's another seek operation started and we should stop
                     if self._seekSeq == seek_id {
                         switch retries {
                         case 0:
-                            NSLog("seekToDate is out of retries")
+                            self._emitEvent("seekToDate is out of retries")
 
                         case 1:
                             self.seekToDate(date, retries: retries-1, useTime:true)
@@ -590,7 +588,8 @@ public class AudioPlayer {
         
         p.currentItem.seekToTime(seek_time, completionHandler: {(finished:Bool) -> Void in
             if finished {
-                NSLog("seekToPercent landed from %2f", percent)
+                let str_per = String(format:"%2f", percent)
+                self._emitEvent("seekToPercent landed from \(str_per)")
                 p.play()
             }
         })
@@ -605,9 +604,9 @@ public class AudioPlayer {
         
         if p.status != AVPlayerStatus.ReadyToPlay {
             // we need to wait for ready before playing or seeking
-            NSLog("Waiting for player ReadyToPlay")
+            self._emitEvent("seekToLive: Waiting for player ReadyToPlay")
             self._pobs?.once(.ItemReady) { msg,obj in
-                NSLog("Seeking now that player is ready.")
+                self._emitEvent("seekToLive: Seeking now that player is ready.")
                 self.seekToLive(completionHandler)
             }
             
@@ -621,7 +620,7 @@ public class AudioPlayer {
         self._interactionIdx++
 
         p.currentItem.seekToTime(kCMTimePositiveInfinity) { finished in
-            NSLog("Did seekToLive. Landed at %@", self._dateFormat.stringFromDate(p.currentItem.currentDate()))
+            self._emitEvent("seekToLive landed at \(self._dateFormat.stringFromDate(p.currentItem.currentDate()))")
             p.play()
             
             completionHandler(finished)
@@ -656,9 +655,9 @@ public class AudioPlayer {
                 self._checkingDate = nil
 
                 if show != nil {
-                    NSLog("Current show is %@",self._currentShow!.title)
+                    self._emitEvent("Current show is \(self._currentShow!.title)")
                 } else {
-                    NSLog("_checkForNewShow failed to get show")
+                    self._emitEvent("_checkForNewShow failed to get show")
                 }
 
                 self.oShow.notify(show)
