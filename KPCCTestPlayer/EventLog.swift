@@ -30,4 +30,16 @@ class EventLog {
     func events() -> [AudioPlayer.Event] {
         return self._events
     }
+    
+    func count() -> Int {
+        return self._events.count
+    }
+    
+    func event(idx:Int,recent:Bool=false) -> AudioPlayer.Event {
+        if recent {
+            return self._events[ self._events.count - 1 - idx ]
+        } else {
+            return self._events[idx]
+        }
+    }
 }

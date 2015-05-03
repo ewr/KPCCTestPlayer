@@ -285,7 +285,7 @@
                             <constraint firstItem="Hp7-VL-eYa" firstAttribute="top" secondItem="AxI-td-nLL" secondAttribute="bottom" id="qXL-OV-gZO"/>
                         </constraints>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Error Log" image="error_log" id="fkX-Tr-WlH" userLabel="Event Log"/>
+                    <tabBarItem key="tabBarItem" title="Event Log" image="error_log" id="fkX-Tr-WlH" userLabel="Event Log"/>
                     <connections>
                         <outlet property="tableView" destination="kpg-t5-Swh" id="DL5-Pm-SWd"/>
                     </connections>

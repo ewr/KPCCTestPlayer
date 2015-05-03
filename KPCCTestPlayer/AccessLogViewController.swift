@@ -16,7 +16,6 @@ class AccessLogViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // render current error log into the text view
         self._updateLog()
         
         AudioPlayer.sharedInstance.oAccessLog.addObserver() { log in

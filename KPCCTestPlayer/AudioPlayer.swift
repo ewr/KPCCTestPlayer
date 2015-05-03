@@ -61,7 +61,7 @@ public class AudioPlayer {
     
     public enum Streams:String {
         case Production = "http://live.scpr.org/sg/kpcc-aac.m3u8?ua=KPCC-EWRTest"
-        case Testing    = "http://streammachine-test.scprdev.org/sg/kpcc-aac.m3u8?ua=KPCC-EWRTest"
+        case Testing    = "http://streammachine-test.scprdev.org:8020/sg/test.m3u8?ua=KPCC-EWRTest"
         
         func toString() -> String {
             return self.rawValue
@@ -75,8 +75,6 @@ public class AudioPlayer {
     let iOS8 = floor(NSFoundationVersionNumber) > floor(NSFoundationVersionNumber_iOS_7_1)
 
     let NORMAL_REWIND = 4 * 60 * 60
-    
-    let SEEK_TOLERANCE = 5
 
     var _player: AVPlayer?
     var _pobs: AVObserver?
@@ -121,6 +119,7 @@ public class AudioPlayer {
     
     var _interactionIdx:Int = 0
     
+    public var seekTolerance:Int = 5
     public var reduceBandwidthOnCellular:Bool = true
     
     //let _assetLoader = AudioPlayerAssetLoader()
@@ -525,7 +524,7 @@ public class AudioPlayer {
                 
                 self._emitEvent(fsig+"landed at \(self._dateFormat.stringFromDate(landed))")
                 
-                if abs( Int(date.timeIntervalSinceReferenceDate - landed.timeIntervalSinceReferenceDate) ) <= self.SEEK_TOLERANCE {
+                if abs( Int(date.timeIntervalSinceReferenceDate - landed.timeIntervalSinceReferenceDate) ) <= self.seekTolerance {
                     // success! start playing
                     p.play()
                 } else {
