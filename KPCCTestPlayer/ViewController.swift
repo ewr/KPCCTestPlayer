@@ -34,12 +34,15 @@ class ViewController: UIViewController {
     }
     
     let _timeF = NSDateFormatter()
+    let _dateF = NSDateFormatter()
     
     var nowPlaying:NowPlayingInfo?
     
     var _lastM:String?
     
     var _bufferTimer:NSTimer?
+    
+    var _sliderInPreview:Bool = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -48,25 +51,29 @@ class ViewController: UIViewController {
         self.nowPlaying = NowPlayingInfo()
         
         self.playPauseButton.addTarget(self, action: "playPauseTapped:", forControlEvents: UIControlEvents.TouchUpInside)
-        self.progressSlider.addTarget(self, action: "sliderUpdated:", forControlEvents: UIControlEvents.ValueChanged)
         self.rewindButton.addTarget(self, action: "rewindTapped:", forControlEvents: UIControlEvents.TouchUpInside)
         self.liveButton.addTarget(self, action: "liveTapped:", forControlEvents: UIControlEvents.TouchUpInside)
 
-        var formatter = NSDateFormatter()
-        formatter.dateFormat = "YYYY-MM-dd hh:mm:ss"
-
+        self.progressSlider.addTarget(self, action: "sliderPreview:", forControlEvents: UIControlEvents.ValueChanged)
+        self.progressSlider.addTarget(self, action: "sliderUpdated:", forControlEvents: UIControlEvents.TouchUpInside)
+        self.progressSlider.addTarget(self, action: "sliderUpdated:", forControlEvents: UIControlEvents.TouchUpOutside)
+        
+        self._dateF.dateFormat = "YYYY-MM-dd hh:mm:ss"
         self._timeF.dateFormat = "h:mma"
 
         //---
 
         AudioPlayer.sharedInstance.oTime.addObserver() { (status:AudioPlayer.StreamDates) -> Void in
             // set current time display
-            self.timeDisplay.text = formatter.stringFromDate(status.curDate)
+            if !self._sliderInPreview {
+                self._updateTimeDisplay(status.curDate)
 
-            // set slider
-            if status.minDate != nil {
-                self._setSlider(status)
+                // set slider
+                if status.minDate != nil {
+                    self._setSlider(status)
+                }
             }
+
             
             let curM = self._timeF.stringFromDate(status.curDate)
             
@@ -232,6 +239,20 @@ class ViewController: UIViewController {
     
     //----------
     
+    func _updateTimeDisplay(date:NSDate?) -> Void {
+        var val:String
+        
+        if date != nil {
+            val = self._dateF.stringFromDate(date!)
+        } else {
+            val = "---"
+        }
+        
+        self.timeDisplay.text = val
+    }
+    
+    //----------
+    
     func setShowInfoFromShow(show:Schedule.ScheduleInstance?) -> Void {
         if show != nil {
             self.showLabel.text = show!.title
@@ -293,14 +314,12 @@ class ViewController: UIViewController {
 
     //----------
     
-    //----------
-    
     func _setSlider(status:AudioPlayer.StreamDates) -> Void {
         switch self.sliderMode.on {
         case true:
             // slider should display information for this program
-            if self.currentShow != nil {
-                let show = self.currentShow!
+            if self.playingShow != nil {
+                let show = self.playingShow!
                 
                 var duration:Double
                 
@@ -329,15 +348,44 @@ class ViewController: UIViewController {
     }
     
     //----------
-
-    func sliderUpdated(sender:UISlider) {
+    
+    func sliderPreview(sender:UISlider) {
         var fpercent = Float64(sender.value)
+        
+        // note that we're previewing, so that other UI updates don't happen
+        self._sliderInPreview = true
+        
+        var date:NSDate?
         
         switch self.sliderMode.on {
         case true:
             // seek to percentage in the current program
-            if self.currentShow != nil {
-                let date = self.currentShow?.percentToDate(fpercent)
+            if self.playingShow != nil {
+                date = self.playingShow!.percentToDate(fpercent)
+            }
+            
+        default:
+            // seek to percentage in the buffer
+            let dates = AudioPlayer.sharedInstance.currentDates
+            
+            if dates != nil {
+                date = dates!.percentToDate(fpercent)
+            }
+        }
+        
+        self._updateTimeDisplay(date)
+    }
+
+    func sliderUpdated(sender:UISlider) {
+        var fpercent = Float64(sender.value)
+        
+        self._sliderInPreview = false
+        
+        switch self.sliderMode.on {
+        case true:
+            // seek to percentage in the current program
+            if self.playingShow != nil {
+                let date = self.playingShow!.percentToDate(fpercent)
                 
                 if date != nil {
                     AudioPlayer.sharedInstance.seekToDate(date!)
