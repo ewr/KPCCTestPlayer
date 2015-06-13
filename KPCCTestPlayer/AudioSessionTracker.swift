@@ -14,7 +14,7 @@ public class AudioSessionTracker {
     public struct Session {
         public var started_at:NSDate
         public var ended_at:NSDate? = nil
-        public var session_id:String? = nil
+        public var session_ids:[String] = []
         
         public var durations:[AudioPlayer.Statuses:Double] = [:]
         public var stalls:Int = 0
@@ -43,9 +43,10 @@ public class AudioSessionTracker {
             }
             
             // do we have a session id?
-            if self._session!.session_id == nil && AudioPlayer.sharedInstance._sessionId != nil {
-                NSLog("Session: Setting session_id -- \(AudioPlayer.sharedInstance._sessionId!)")
-                self._session!.session_id = AudioPlayer.sharedInstance._sessionId!
+            let sid = AudioPlayer.sharedInstance._sessionId
+            if sid != nil && (self._session!.session_ids.count == 0 || sid != self._session!.session_ids.last)  {
+                NSLog("Session: Adding AVPlayer session_id -- \(sid!)")
+                self._session!.session_ids.append(sid!)
             }
             
             // how long were we in our previous state?

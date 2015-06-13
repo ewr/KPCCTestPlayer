@@ -18,6 +18,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var rewindButton: UIButton!
     @IBOutlet weak var liveButton: UIButton!
     
+    @IBOutlet weak var sliderMode: UISwitch!
     @IBOutlet weak var variantLabel: UILabel!
     @IBOutlet weak var bufferLabel: UILabel!
     
@@ -64,12 +65,7 @@ class ViewController: UIViewController {
 
             // set slider
             if status.minDate != nil {
-                var duration: Double = status.maxDate!.timeIntervalSince1970 - status.minDate!.timeIntervalSince1970
-                var position: Double = status.curDate.timeIntervalSince1970 - status.minDate!.timeIntervalSince1970
-
-                var percent = position / duration
-
-                self.progressSlider.value = Float(percent)
+                self._setSlider(status)
             }
             
             let curM = self._timeF.stringFromDate(status.curDate)
@@ -163,7 +159,6 @@ class ViewController: UIViewController {
         
         // -- set up timer for buffered seconds -- //
         
-        // FIXME: This should only really go if something is playing...
         self._bufferTimer = NSTimer.scheduledTimerWithTimeInterval(1, target:self, selector:"_updateBufferLabel", userInfo:nil, repeats:true)
         
         // -- watch for variant changes -- //
@@ -297,11 +292,62 @@ class ViewController: UIViewController {
     }
 
     //----------
+    
+    //----------
+    
+    func _setSlider(status:AudioPlayer.StreamDates) -> Void {
+        switch self.sliderMode.on {
+        case true:
+            // slider should display information for this program
+            if self.currentShow != nil {
+                let show = self.currentShow!
+                
+                var duration:Double
+                
+                if (status.maxDate != nil && status.maxDate!.timeIntervalSince1970 < show.ends_at.timeIntervalSince1970) {
+                    duration = status.maxDate!.timeIntervalSince1970 - show.starts_at.timeIntervalSince1970
+                } else {
+                    duration = show.ends_at.timeIntervalSince1970 - show.starts_at.timeIntervalSince1970
+                }
+                
+                var position:Double = status.curDate.timeIntervalSince1970 - show.starts_at.timeIntervalSince1970
+                
+                var percent = position / duration
+                
+                self.progressSlider.value = Float(percent)
+            }
+            
+        default:
+            // slider should display entire buffer
+            var duration: Double = status.maxDate!.timeIntervalSince1970 - status.minDate!.timeIntervalSince1970
+            var position: Double = status.curDate.timeIntervalSince1970 - status.minDate!.timeIntervalSince1970
+            
+            var percent = position / duration
+            
+            self.progressSlider.value = Float(percent)
+        }
+    }
+    
+    //----------
 
     func sliderUpdated(sender:UISlider) {
-        let ap = AudioPlayer.sharedInstance
         var fpercent = Float64(sender.value)
-        ap.seekToPercent(fpercent)
+        
+        switch self.sliderMode.on {
+        case true:
+            // seek to percentage in the current program
+            if self.currentShow != nil {
+                let date = self.currentShow?.percentToDate(fpercent)
+                
+                if date != nil {
+                    AudioPlayer.sharedInstance.seekToDate(date!)
+                }
+            }
+            
+        default:
+            // seek to percentage in the buffer
+            AudioPlayer.sharedInstance.seekToPercent(fpercent)
+        }
     }
 
 }

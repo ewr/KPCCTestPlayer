@@ -90,6 +90,17 @@ public class AudioPlayer {
         var minDate:    NSDate?
         var maxDate:    NSDate?
         var buffered:   Double?
+        
+        func percentToDate(percent:Float64) -> NSDate? {
+            if minDate == nil || maxDate == nil {
+                return nil
+            }
+            
+            let duration:Double = maxDate!.timeIntervalSince1970 - minDate!.timeIntervalSince1970
+            let seconds:Double = duration * percent
+            
+            return minDate!.dateByAddingTimeInterval(seconds)
+        }
     }
 
     var currentDates: StreamDates?
@@ -594,6 +605,9 @@ public class AudioPlayer {
     //----------
 
     public func seekToPercent(percent: Float64) -> Bool {
+        // convert percent into a date and then just call seekToDate
+        var target:NSDate
+        
         let str_per = String(format:"%2f", percent)
         
         self._emitEvent("seekToPercent called for \(str_per)")
@@ -613,31 +627,19 @@ public class AudioPlayer {
             
             return true
         }
-
-        // we can only seekToPercent if we have a seekableTimeRange
-        if p.currentItem.seekableTimeRanges.isEmpty {
+        
+        if self.currentDates != nil {
+            let date = self.currentDates!.percentToDate(percent)
+            
+            if date != nil {
+                self.seekToDate(date!)
+                return true
+            } else {
+                return false
+            }
+        } else {
             return false
         }
-        
-        // figure out where we're seeking to
-        var seek_range = p.currentItem.seekableTimeRanges[0].CMTimeRangeValue
-        var seek_time = CMTimeAdd( seek_range.start, CMTimeMultiplyByFloat64(seek_range.duration,percent))
-
-        self._setStatus(.Seeking)
-        
-        if p.rate != 0.0 {
-            p.pause()
-        }
-        
-        p.currentItem.seekToTime(seek_time, completionHandler: {(finished:Bool) -> Void in
-            if finished {
-                
-                self._emitEvent("seekToPercent landed from \(str_per)")
-                p.play()
-            }
-        })
-
-        return true
     }
 
     //----------

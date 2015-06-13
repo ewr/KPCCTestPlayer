@@ -23,6 +23,12 @@ public class Schedule {
         public var starts_at:      NSDate
         public var ends_at:        NSDate
         public var soft_starts_at: NSDate
+        
+        func percentToDate(percent:Float64) -> NSDate? {
+            let duration:Double = ends_at.timeIntervalSince1970 - starts_at.timeIntervalSince1970
+            let seconds:Double = duration * percent
+            return starts_at.dateByAddingTimeInterval(seconds)
+        }
     }
     
     //----------
