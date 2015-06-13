@@ -26,6 +26,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             NSLog("AudioPlayer Event: \(event.message)")
         }
         
+        // turn on the session tracker
+        AudioSessionTracker.sharedInstance
+        
         return true
     }
     

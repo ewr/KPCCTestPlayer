@@ -11,12 +11,7 @@ import Alamofire
 import SwiftyJSON
 
 public class Schedule {
-    public class var sharedInstance: Schedule {
-        struct Static {
-            static let instance = Schedule()
-        }
-        return Static.instance
-    }
+    public static let sharedInstance = Schedule()
     
     //----------
     

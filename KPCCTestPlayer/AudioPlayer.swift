@@ -119,12 +119,16 @@ public class AudioPlayer {
     
     var _interactionIdx:Int = 0
     
+    // Configurable Settings
     public var seekTolerance:Int = 5
     public var reduceBandwidthOnCellular:Bool = true
+    //public var trackSessions:Bool = true
     
     //let _assetLoader = AudioPlayerAssetLoader()
     let _reachability = Reachability.reachabilityForInternetConnection()
     var _networkStatus: NetworkStatus = .Unknown
+    
+    //var _sessions:AudioSessionTracker? = nil
 
     //----------
 
@@ -142,7 +146,7 @@ public class AudioPlayer {
             // FIXME: You can't tell me there isn't a cleaner way to do this...
             switch AVAudioSessionInterruptionType( rawValue: n.userInfo![AVAudioSessionInterruptionTypeKey] as! UInt)! {
             case .Began:
-                NSLog("Player interruption began. State was \(self.status.toString())")
+                self._emitEvent("Player interruption began. State was \(self.status.toString())")
                 
                 // this is a little bit of a hack... we want prevStatus to be our current status 
                 // when we return from the interruption, but if we're already paused we might not 
@@ -156,7 +160,7 @@ public class AudioPlayer {
                 let opts = AVAudioSessionInterruptionOptions( n.userInfo![AVAudioSessionInterruptionOptionKey] as! UInt )
 
                 if opts == .OptionShouldResume {
-                    NSLog("Told we should resume. Previous status was \(self.prevStatus.toString())")
+                    self._emitEvent("Told we should resume. Previous status was \(self.prevStatus.toString())")
                     if self.prevStatus == .Playing {
                         if self.currentDates != nil {
                             self.seekToDate(self.currentDates!.curDate,useTime:true)
@@ -170,6 +174,13 @@ public class AudioPlayer {
                 true
             }
         }
+        
+        // -- Session Tracking? -- //
+//        
+//        if self.trackSessions {
+//            NSLog("Turning on session tracker.")
+//            self._sessions = AudioSessionTracker.sharedInstance
+//        }
         
         // -- watch for Reachability -- //
         
@@ -194,7 +205,7 @@ public class AudioPlayer {
                     switch s {
                     case .Cellular:
                         // turn limit on
-                        self._emitEvent("Limiting bandwidth")
+                        self._emitEvent("Limiting bandwidth on cellular.")
                         self._player!.currentItem.preferredPeakBitRate = 1000
                     case .WIFI:
                         // turn limit off
@@ -216,19 +227,20 @@ public class AudioPlayer {
         
         switch self._reachability.currentReachabilityStatus {
         case .ReachableViaWiFi:
-            NSLog("Init reach is WIFI")
+            NSLog("Reach is WIFI")
             
             s = .WIFI
         case .ReachableViaWWAN:
-            NSLog("Init reach is cellular")
+            NSLog("Reach is cellular")
             s = .Cellular
         case .NotReachable:
-            NSLog("Init is unreachable")
+            NSLog("Reach is unreachable")
             s = .NotReachable
         }
         
         if s != self._networkStatus {
             self._networkStatus = s
+            self._emitEvent("Network status is now \(s.toString())")
             self.oNetwork.notify(s)
         }
     }
@@ -271,6 +283,7 @@ public class AudioPlayer {
                     let stallIdx = self._interactionIdx
                     let stallPosition = self.currentDates?.curDate
                     
+                    // FIXME: Are the other methods we should be using to try and claw back from a stall?
                     self._pobs!.once(.LikelyToKeepUp) { msg,obj in
                         // if there's been a user interaction in the meantime, we do a no-op
                         if stallIdx == self._interactionIdx {
@@ -601,8 +614,13 @@ public class AudioPlayer {
             return true
         }
 
+        // we can only seekToPercent if we have a seekableTimeRange
+        if p.currentItem.seekableTimeRanges.isEmpty {
+            return false
+        }
+        
+        // figure out where we're seeking to
         var seek_range = p.currentItem.seekableTimeRanges[0].CMTimeRangeValue
-
         var seek_time = CMTimeAdd( seek_range.start, CMTimeMultiplyByFloat64(seek_range.duration,percent))
 
         self._setStatus(.Seeking)

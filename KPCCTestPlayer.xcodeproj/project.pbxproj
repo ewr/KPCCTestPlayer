@@ -16,6 +16,7 @@
 		07321EE81AA7C584009C569D /* AudioPlayerAssetLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07321EE71AA7C584009C569D /* AudioPlayerAssetLoader.swift */; };
 		0740685B1AF53BCD00AC0A9C /* EventLogCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0740685A1AF53BCD00AC0A9C /* EventLogCell.swift */; };
 		0740685D1AF540FD00AC0A9C /* EventLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0740685C1AF540FD00AC0A9C /* EventLog.swift */; };
+		0740685F1AF6445200AC0A9C /* AudioSessionTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0740685E1AF6445200AC0A9C /* AudioSessionTracker.swift */; };
 		078A5D971A640FE100A67C41 /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 078A5D961A640FE100A67C41 /* AudioPlayer.swift */; };
 		078A5D991A64120E00A67C41 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 078A5D981A64120E00A67C41 /* AVFoundation.framework */; };
 		079783801A6AA35F00EE559B /* Schedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0797837F1A6AA35F00EE559B /* Schedule.swift */; };
@@ -53,6 +54,7 @@
 		07321EE71AA7C584009C569D /* AudioPlayerAssetLoader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayerAssetLoader.swift; sourceTree = "<group>"; };
 		0740685A1AF53BCD00AC0A9C /* EventLogCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventLogCell.swift; sourceTree = "<group>"; };
 		0740685C1AF540FD00AC0A9C /* EventLog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventLog.swift; sourceTree = "<group>"; };
+		0740685E1AF6445200AC0A9C /* AudioSessionTracker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioSessionTracker.swift; sourceTree = "<group>"; };
 		076537041A8BBC19004E7495 /* Pods-KPCCTestPlayerTests.debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "Pods-KPCCTestPlayerTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-KPCCTestPlayerTests/Pods-KPCCTestPlayerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		076537061A8BBC20004E7495 /* Pods-KPCCTestPlayerTests.release.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "Pods-KPCCTestPlayerTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-KPCCTestPlayerTests/Pods-KPCCTestPlayerTests.release.xcconfig"; sourceTree = "<group>"; };
 		078A5D961A640FE100A67C41 /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
@@ -132,6 +134,7 @@
 				0797837F1A6AA35F00EE559B /* Schedule.swift */,
 				07A845151AE2F8D100FC7C41 /* Reachability.swift */,
 				0740685C1AF540FD00AC0A9C /* EventLog.swift */,
+				0740685E1AF6445200AC0A9C /* AudioSessionTracker.swift */,
 			);
 			path = KPCCTestPlayer;
 			sourceTree = "<group>";
@@ -231,6 +234,7 @@
 		0714CAD31A5C7992007EB486 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 0700;
 				LastUpgradeCheck = 0630;
 				ORGANIZATIONNAME = "Eric Richardson";
 				TargetAttributes = {
@@ -398,6 +402,7 @@
 				07CC51951A753B3200E53E8B /* av_observer.swift in Sources */,
 				07A845161AE2F8D100FC7C41 /* Reachability.swift in Sources */,
 				079783801A6AA35F00EE559B /* Schedule.swift in Sources */,
+				0740685F1AF6445200AC0A9C /* AudioSessionTracker.swift in Sources */,
 				078A5D971A640FE100A67C41 /* AudioPlayer.swift in Sources */,
 				07E97B4B1A98FD9E00A6B549 /* SettingsViewController.swift in Sources */,
 			);
