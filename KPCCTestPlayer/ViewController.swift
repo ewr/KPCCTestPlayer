@@ -46,7 +46,10 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+
+        // disable the slider initially until we have a working player
+        self.progressSlider.enabled = false
+        self.sliderMode.enabled = false
         
         self.nowPlaying = NowPlayingInfo()
         
@@ -137,9 +140,6 @@ class ViewController: UIViewController {
         
         // -- set play/pause button state -- //
         
-        // this could easily be done in the observer above, but setting our own 
-        // allows for less code duplication in play/pause functionality
-        
         AudioPlayer.sharedInstance.oStatus.addObserver() { status in
             switch status {
             case .Playing:
@@ -151,6 +151,19 @@ class ViewController: UIViewController {
             default:
                 // show the play button
                 self.playPauseButton.setTitle("Play", forState: .Normal)
+            }
+        }
+        
+        // -- set slider state -- //
+        
+        AudioPlayer.sharedInstance.oStatus.addObserver() { status in
+            switch status {
+            case .New, .Stopped:
+                self.progressSlider.enabled = false
+                self.sliderMode.enabled = false
+            default:
+                self.progressSlider.enabled = true
+                self.sliderMode.enabled = true
             }
         }
         
@@ -323,11 +336,11 @@ class ViewController: UIViewController {
                 
                 var duration:Double
                 
-                if (status.maxDate != nil && status.maxDate!.timeIntervalSince1970 < show.ends_at.timeIntervalSince1970) {
-                    duration = status.maxDate!.timeIntervalSince1970 - show.starts_at.timeIntervalSince1970
-                } else {
+//                if (status.maxDate != nil && status.maxDate!.timeIntervalSince1970 < show.ends_at.timeIntervalSince1970) {
+//                    duration = status.maxDate!.timeIntervalSince1970 - show.starts_at.timeIntervalSince1970
+//                } else {
                     duration = show.ends_at.timeIntervalSince1970 - show.starts_at.timeIntervalSince1970
-                }
+//                }
                 
                 var position:Double = status.curDate.timeIntervalSince1970 - show.starts_at.timeIntervalSince1970
                 
