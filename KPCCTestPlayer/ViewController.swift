@@ -193,8 +193,8 @@ class ViewController: UIViewController {
     
     //----------
     
-    override func remoteControlReceivedWithEvent(event: UIEvent) {
-        switch event.subtype {
+    override func remoteControlReceivedWithEvent(event: UIEvent?) {
+        switch event!.subtype {
         case UIEventSubtype.RemoteControlPlay:
             AudioPlayer.sharedInstance.play()
         case UIEventSubtype.RemoteControlPause:
@@ -342,19 +342,19 @@ class ViewController: UIViewController {
                     duration = show.ends_at.timeIntervalSince1970 - show.starts_at.timeIntervalSince1970
 //                }
                 
-                var position:Double = status.curDate.timeIntervalSince1970 - show.starts_at.timeIntervalSince1970
+                let position:Double = status.curDate.timeIntervalSince1970 - show.starts_at.timeIntervalSince1970
                 
-                var percent = position / duration
+                let percent = position / duration
                 
                 self.progressSlider.value = Float(percent)
             }
             
         default:
             // slider should display entire buffer
-            var duration: Double = status.maxDate!.timeIntervalSince1970 - status.minDate!.timeIntervalSince1970
-            var position: Double = status.curDate.timeIntervalSince1970 - status.minDate!.timeIntervalSince1970
+            let duration: Double = status.maxDate!.timeIntervalSince1970 - status.minDate!.timeIntervalSince1970
+            let position: Double = status.curDate.timeIntervalSince1970 - status.minDate!.timeIntervalSince1970
             
-            var percent = position / duration
+            let percent = position / duration
             
             self.progressSlider.value = Float(percent)
         }
@@ -363,7 +363,7 @@ class ViewController: UIViewController {
     //----------
     
     func sliderPreview(sender:UISlider) {
-        var fpercent = Float64(sender.value)
+        let fpercent = Float64(sender.value)
         
         // note that we're previewing, so that other UI updates don't happen
         self._sliderInPreview = true
@@ -390,7 +390,7 @@ class ViewController: UIViewController {
     }
 
     func sliderUpdated(sender:UISlider) {
-        var fpercent = Float64(sender.value)
+        let fpercent = Float64(sender.value)
         
         self._sliderInPreview = false
         

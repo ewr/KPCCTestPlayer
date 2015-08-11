@@ -32,7 +32,7 @@ class AudioPlayerAssetLoader: NSObject, AVAssetResourceLoaderDelegate {
         self._manager = Alamofire.Manager(configuration:config)
     }
     
-    func resourceLoader(resourceLoader: AVAssetResourceLoader!, shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest!) -> Bool {
+    func resourceLoader(resourceLoader: AVAssetResourceLoader, shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest) -> Bool {
         
         // we want to convert the fake proto to http, then do the load
         let url = NSURLComponents(URL: loadingRequest.request.URL!, resolvingAgainstBaseURL: false)
@@ -61,24 +61,24 @@ class AudioPlayerAssetLoader: NSObject, AVAssetResourceLoaderDelegate {
                         //loadingRequest.response = res
                         
                         // set the data
-                        loadingRequest.dataRequest.respondWithData(data as! NSData)
+                        loadingRequest.dataRequest!.respondWithData(data!)
                         
-                        NSLog("Added data. Offset is now \(loadingRequest.dataRequest.currentOffset)")
+                        NSLog("Added data. Offset is now \(loadingRequest.dataRequest!.currentOffset)")
                         
                         // FIXME: I'm not confident any of this contentInformationRequest makes a difference
                         if loadingRequest.contentInformationRequest != nil {
                             // contentType is a little funky...
                             if (url!.path!.rangeOfString(".aac") != nil) {
-                                loadingRequest.contentInformationRequest.contentType = "public.aac-audio"
+                                loadingRequest.contentInformationRequest!.contentType = "public.aac-audio"
                             } else if (url!.path!.rangeOfString(".m3u8") != nil) {
-                                loadingRequest.contentInformationRequest.contentType = "public.m3u-playlist"
+                                loadingRequest.contentInformationRequest!.contentType = "public.m3u-playlist"
                             }
                             
                             // data length
-                            loadingRequest.contentInformationRequest.contentLength = data!.length!
-                            NSLog("contentLength is \(loadingRequest.contentInformationRequest.contentLength)")
+                            loadingRequest.contentInformationRequest!.contentLength = Int64(data!.length)
+                            NSLog("contentLength is \(loadingRequest.contentInformationRequest!.contentLength)")
                             
-                            loadingRequest.contentInformationRequest.byteRangeAccessSupported = false
+                            loadingRequest.contentInformationRequest!.byteRangeAccessSupported = false
                         }
                         
                         // we're done
@@ -90,7 +90,7 @@ class AudioPlayerAssetLoader: NSObject, AVAssetResourceLoaderDelegate {
                         NSLog("request took \(duration)")
                         
                         // clean up...
-                        for (idx,l) in enumerate(self._loaders) {
+                        for (idx,l) in self._loaders.enumerate() {
                             if l.loader == load_request.loader {
                                 self._loaders.removeAtIndex(idx)
                                 break

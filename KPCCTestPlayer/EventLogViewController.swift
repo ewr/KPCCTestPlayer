@@ -32,7 +32,7 @@ class EventLogViewController: UIViewController, UITableViewDelegate, UITableView
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        var cell = self.tableView.dequeueReusableCellWithIdentifier("eventLogCell") as! EventLogCell
+        let cell = self.tableView.dequeueReusableCellWithIdentifier("eventLogCell") as! EventLogCell
         cell.setEvent(self._eventLog.event(indexPath.row,recent:true))
         return cell
     }

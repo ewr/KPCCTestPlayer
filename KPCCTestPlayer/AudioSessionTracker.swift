@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CoreData
 
 public class AudioSessionTracker {
     public static let sharedInstance = AudioSessionTracker()
@@ -33,7 +34,7 @@ public class AudioSessionTracker {
     private var _curState:CurrentState?
     private var _lastActiveAt:NSDate?
     
-    init() {
+    init() {        
         // listen for player state changes
         AudioPlayer.sharedInstance.oStatus.addObserver() { status in
             // is this the start of a new session?

@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model name="Test1.xcdatamodel" userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" macOSVersion="Automatic" iOSVersion="Automatic">
-    <elements/>
+<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="7701" systemVersion="14E36b" minimumToolsVersion="Automatic" macOSVersion="Automatic" iOSVersion="Automatic">
+    <entity name="AudioSession" representedClassName="AudioSessionTracker._Session" syncable="YES">
+        <attribute name="durations" optional="YES" attributeType="Transformable" syncable="YES"/>
+        <attribute name="ended_at" optional="YES" attributeType="Date" syncable="YES"/>
+        <attribute name="sent" attributeType="Boolean" defaultValueString="NO" syncable="YES"/>
+        <attribute name="session_id" optional="YES" attributeType="Transformable" syncable="YES"/>
+        <attribute name="stalls" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
+        <attribute name="started_at" attributeType="Date" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="AudioSession" positionX="-63" positionY="-18" width="128" height="135"/>
+    </elements>
 </model>

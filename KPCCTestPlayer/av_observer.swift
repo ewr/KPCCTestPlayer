@@ -37,10 +37,10 @@ class AVObserver: NSObject {
         
         super.init()
         
-        player.addObserver(self, forKeyPath:"status", options: nil, context: nil)
-        player.addObserver(self, forKeyPath:"rate", options: nil, context: nil)
-        player.currentItem.addObserver(self, forKeyPath:"status", options: nil, context: nil)
-        player.currentItem.addObserver(self, forKeyPath:"playbackLikelyToKeepUp", options: nil, context: nil)
+        player.addObserver(self, forKeyPath:"status", options: [], context: nil)
+        player.addObserver(self, forKeyPath:"rate", options: [], context: nil)
+        player.currentItem!.addObserver(self, forKeyPath:"status", options: [], context: nil)
+        player.currentItem!.addObserver(self, forKeyPath:"playbackLikelyToKeepUp", options: [], context: nil)
         
         // also subscribe to notifications from currentItem
         for n in self._itemNotifications {
@@ -53,8 +53,8 @@ class AVObserver: NSObject {
     func stop() {
         self._player.removeObserver(self,forKeyPath:"status")
         self._player.removeObserver(self, forKeyPath:"rate")
-        self._player.currentItem.removeObserver(self, forKeyPath: "status")
-        self._player.currentItem.removeObserver(self, forKeyPath: "playbackLikelyToKeepUp")
+        self._player.currentItem!.removeObserver(self, forKeyPath: "status")
+        self._player.currentItem!.removeObserver(self, forKeyPath: "playbackLikelyToKeepUp")
         
         NSNotificationCenter.defaultCenter().removeObserver(self)
         
@@ -116,12 +116,12 @@ class AVObserver: NSObject {
             self._notify(Statuses.TimeJump,msg: "Time jumped.")
         case AVPlayerItemNewErrorLogEntryNotification:
             // try and pull the log...
-            let log:AVPlayerItemErrorLogEvent? = self._player.currentItem.errorLog().events.last as? AVPlayerItemErrorLogEvent
-            let msg:String? = log?.errorComment
+            let log:AVPlayerItemErrorLogEvent? = self._player.currentItem!.errorLog()!.events.last
+            //let msg:String? = log?.errorComment
             // FIXME: How should we present this message?
             self._notify(Statuses.ErrorLog,msg: "Error",obj: log)
         case AVPlayerItemNewAccessLogEntryNotification:
-            let log:AVPlayerItemAccessLogEvent? = self._player.currentItem.accessLog().events.last as? AVPlayerItemAccessLogEvent
+            let log:AVPlayerItemAccessLogEvent? = self._player.currentItem!.accessLog()!.events.last
             self._notify(Statuses.AccessLog,msg: "Access Log",obj: log)
         default:
             true
@@ -130,21 +130,21 @@ class AVObserver: NSObject {
     
     //----------
     
-    override func observeValueForKeyPath(keyPath: String, ofObject object: AnyObject, change: [NSObject : AnyObject], context: UnsafeMutablePointer<Void>) {
+    override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
         
         if object as! NSObject == self._player {
-            switch keyPath {
+            switch keyPath! {
             case "status":
-                switch object.status as AVPlayerStatus {
+                switch object!.status as AVPlayerStatus {
                 case AVPlayerStatus.ReadyToPlay:
                     self._notify(Statuses.PlayerReady, msg: "Player Ready to Play")
                 case AVPlayerStatus.Failed:
-                    self._notify(Statuses.PlayerFailed,msg: self._player.error.localizedDescription, obj:self._player.error)
+                    self._notify(Statuses.PlayerFailed,msg: self._player.error!.localizedDescription, obj:self._player.error)
                 default:
                     true
                 }
             case "rate":
-                switch object.rate as Float {
+                switch object!.rate as Float {
                 case 0.0:
                     self._notify(Statuses.Paused,msg: "Paused")
                 case 1.0:
@@ -156,19 +156,19 @@ class AVObserver: NSObject {
             default:
                 true
             }
-        } else if object as! NSObject == self._player.currentItem {
-            switch keyPath {
+        } else if (object as! NSObject) == self._player.currentItem {
+            switch keyPath! {
             case "status":
-                switch object.status as AVPlayerItemStatus {
+                switch object!.status as AVPlayerItemStatus {
                 case AVPlayerItemStatus.ReadyToPlay:
                     self._notify(Statuses.ItemReady,msg:"Item Ready to Play")
                 case AVPlayerItemStatus.Failed:
-                    self._notify(Statuses.ItemFailed, msg: self._player.currentItem.error.localizedDescription, obj: self._player.currentItem.error)
+                    self._notify(Statuses.ItemFailed, msg: self._player.currentItem!.error!.localizedDescription, obj: self._player.currentItem!.error)
                 default:
                     NSLog("curItem gave unhandled status")
                 }
             case "playbackLikelyToKeepUp":
-                if self._player.currentItem.playbackLikelyToKeepUp == true {
+                if self._player.currentItem!.playbackLikelyToKeepUp == true {
                     self._notify(.LikelyToKeepUp, msg: "currentItem says playback is likely to keep up")
                 } else {
                     self._notify(.UnlikelyToKeepUp, msg: "currentItem says playback is unlikely to keep up")

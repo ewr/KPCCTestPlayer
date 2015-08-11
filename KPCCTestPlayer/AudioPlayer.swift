@@ -168,9 +168,9 @@ public class AudioPlayer {
             case .Ended:
                 // should we resume?
                 
-                let opts = AVAudioSessionInterruptionOptions( n.userInfo![AVAudioSessionInterruptionOptionKey] as! UInt )
+                let opts = AVAudioSessionInterruptionOptions( rawValue: n.userInfo![AVAudioSessionInterruptionOptionKey] as! UInt )
 
-                if opts == .OptionShouldResume {
+                if opts == .ShouldResume {
                     self._emitEvent("Told we should resume. Previous status was \(self.prevStatus.toString())")
                     if self.prevStatus == .Playing {
                         if self.currentDates != nil {
@@ -180,9 +180,6 @@ public class AudioPlayer {
                         }
                     }
                 }
-            default:
-                // there are only two cases...
-                true
             }
         }
         
@@ -195,15 +192,15 @@ public class AudioPlayer {
         
         // -- watch for Reachability -- //
         
-        self._reachability.whenReachable = { r in
+        self._reachability!.whenReachable = { r in
             self.setNetworkStatus()
         }
         
-        self._reachability.whenUnreachable = { r in
+        self._reachability!.whenUnreachable = { r in
             self.setNetworkStatus()
         }
 
-        self._reachability.startNotifier()
+        self._reachability!.startNotifier()
         
         // and a check right now...
         self.setNetworkStatus()
@@ -217,11 +214,11 @@ public class AudioPlayer {
                     case .Cellular:
                         // turn limit on
                         self._emitEvent("Limiting bandwidth on cellular.")
-                        self._player!.currentItem.preferredPeakBitRate = 1000
+                        self._player!.currentItem!.preferredPeakBitRate = 1000
                     case .WIFI:
                         // turn limit off
                         self._emitEvent("Turning off bandwidth limit.")
-                        self._player!.currentItem.preferredPeakBitRate = 0
+                        self._player!.currentItem!.preferredPeakBitRate = 0
                     default:
                         // don't make changes
                         true
@@ -236,7 +233,7 @@ public class AudioPlayer {
     private func setNetworkStatus() {
         var s:NetworkStatus
         
-        switch self._reachability.currentReachabilityStatus {
+        switch self._reachability!.currentReachabilityStatus {
         case .ReachableViaWiFi:
             NSLog("Reach is WIFI")
             
@@ -262,7 +259,7 @@ public class AudioPlayer {
         if (self._player == nil) {
             self._emitEvent("New player instance created for stream \(self._mode.toString())")
             
-            let asset = AVURLAsset(URL:NSURL(string:self._mode.toString()),options:nil)
+            let asset = AVURLAsset(URL:NSURL(string:self._mode.toString())!,options:nil)
             //asset.resourceLoader.setDelegate(self._assetLoader, queue: self._assetLoader.queue)
             
             let item = AVPlayerItem(asset: asset)
@@ -283,7 +280,7 @@ public class AudioPlayer {
                     self._emitEvent("Player failed with error: \(msg)")
                     self.stop()
                 case .ItemFailed:
-                    let err = obj as! NSError
+                    //let err = obj as! NSError
                     self._emitEvent("Item failed with error: \(msg)")
                     self.stop()
                 case .Stalled:
@@ -329,6 +326,18 @@ public class AudioPlayer {
                     NSLog("playback unlikely to keep up")
                 case .TimeJump:
                     NSLog("Player reports that time jumped.")
+                    
+                    let lastRecordedTime:String
+                    
+                    if self.currentDates != nil {
+                        lastRecordedTime = self._dateFormat.stringFromDate(self.currentDates!.curDate)
+                    } else {
+                        lastRecordedTime = "Unknown"
+                    }
+                    
+                    let newDate:String = self._dateFormat.stringFromDate(self._player!.currentItem!.currentDate()!)
+                    
+                    self._emitEvent("Time jump! Last recorded time: \(lastRecordedTime). New time: \(newDate)")
                 default:
                     true
                 }
@@ -342,10 +351,16 @@ public class AudioPlayer {
             }
             
             let av = AVAudioSession.sharedInstance()
-            av.setCategory(AVAudioSessionCategoryPlayback, error:nil)
+            do {
+                try av.setCategory(AVAudioSessionCategoryPlayback)
+            } catch _ {
+            }
 
-            // FIXME: should be checking return here to see if we did go active
-            av.setActive(true, error: nil)
+            do {
+                // FIXME: should be checking return here to see if we did go active
+                try av.setActive(true)
+            } catch _ {
+            }
 
             // observe time every second
             self._player!.addPeriodicTimeObserverForInterval(CMTimeMake(1,1), queue: nil,
@@ -360,35 +375,35 @@ public class AudioPlayer {
                         return
                     }
 
-                    var curDate = self._player!.currentItem.currentDate()
+                    let curDate = self._player!.currentItem!.currentDate()
 
                     var seek_range: CMTimeRange
                     var minDate: NSDate? = nil
                     var maxDate: NSDate? = nil
                     var buffered: Double? = nil
                     
-                    if !self._player!.currentItem.loadedTimeRanges.isEmpty {
-                        let loaded_range = self._player!.currentItem.loadedTimeRanges[0].CMTimeRangeValue
+                    if !self._player!.currentItem!.loadedTimeRanges.isEmpty {
+                        let loaded_range = self._player!.currentItem!.loadedTimeRanges[0].CMTimeRangeValue
                         buffered = CMTimeGetSeconds(CMTimeSubtract(CMTimeRangeGetEnd(loaded_range), time))
                     }
 
-                    if !self._player!.currentItem.seekableTimeRanges.isEmpty {
-                        seek_range = self._player!.currentItem.seekableTimeRanges[0].CMTimeRangeValue
+                    if !self._player!.currentItem!.seekableTimeRanges.isEmpty {
+                        seek_range = self._player!.currentItem!.seekableTimeRanges[0].CMTimeRangeValue
 
                         // these calculations assume no discontinuities in the playlist data
                         // FIXME: We really want to get these from the playlist... There has to be a way to get there
-                        minDate = NSDate(timeInterval: -1 * (CMTimeGetSeconds(time) - CMTimeGetSeconds(seek_range.start)), sinceDate:curDate)
-                        maxDate = NSDate(timeInterval: CMTimeGetSeconds(CMTimeRangeGetEnd(seek_range)) - CMTimeGetSeconds(time), sinceDate:curDate)
+                        minDate = NSDate(timeInterval: -1 * (CMTimeGetSeconds(time) - CMTimeGetSeconds(seek_range.start)), sinceDate:curDate!)
+                        maxDate = NSDate(timeInterval: CMTimeGetSeconds(CMTimeRangeGetEnd(seek_range)) - CMTimeGetSeconds(time), sinceDate:curDate!)
                     }
                     
                     if curDate != nil {                        
-                        var status = StreamDates(curDate: curDate, minDate: minDate, maxDate: maxDate, buffered:buffered)
+                        let status = StreamDates(curDate: curDate!, minDate: minDate, maxDate: maxDate, buffered:buffered)
                         
                         self.currentDates = status
                         
                         self.oTime.notify(status)
                         
-                        self._checkForNewShow(curDate, from_seek:false)
+                        self._checkForNewShow(curDate!, from_seek:false)
                     }
                 }
             )
@@ -401,8 +416,8 @@ public class AudioPlayer {
     //----------
     
     public func bufferedSecs() -> Double? {
-        if ( self._player != nil && !self._player!.currentItem.loadedTimeRanges.isEmpty ) {
-            let loaded_range = self._player!.currentItem.loadedTimeRanges[0].CMTimeRangeValue
+        if ( self._player != nil && !self._player!.currentItem!.loadedTimeRanges.isEmpty ) {
+            let loaded_range = self._player!.currentItem!.loadedTimeRanges[0].CMTimeRangeValue
             let buffered = CMTimeGetSeconds(CMTimeSubtract(CMTimeRangeGetEnd(loaded_range), self._player!.currentTime()))
             
             return buffered
@@ -434,7 +449,7 @@ public class AudioPlayer {
     
     public func getAccessLog() -> AVPlayerItemAccessLog? {
         if self._player != nil {
-            return self._player!.currentItem.accessLog()
+            return self._player!.currentItem!.accessLog()
         } else {
             return nil
         }
@@ -444,7 +459,7 @@ public class AudioPlayer {
     
     public func getErrorLog() -> AVPlayerItemErrorLog? {
         if self._player != nil {
-            return self._player!.currentItem.errorLog()
+            return self._player!.currentItem!.errorLog()
         } else {
             return nil
         }
@@ -534,17 +549,17 @@ public class AudioPlayer {
         self._setStatus(.Seeking)
 
         // we'll pause, seek, then play
-        if p.rate != 0.0 {
-            self._emitEvent(fsig+"Pausing to seek")
-            p.pause()
-        }
+//        if p.rate != 0.0 {
+//            self._emitEvent(fsig+"Pausing to seek")
+//            p.pause()
+//        }
         
         // Set up common code for testing our landing position
         let testLanding = { (finished:Bool) -> Void in
             
             if finished {
                 // how close did we get?
-                let landed = p.currentItem.currentDate()
+                let landed = p.currentItem!.currentDate()!
                 
                 self._emitEvent(fsig+"landed at \(self._dateFormat.stringFromDate(landed))")
                 
@@ -588,15 +603,15 @@ public class AudioPlayer {
         // SEEK!
         
         // how far are we trying to go?
-        let offsetSeconds = date.timeIntervalSinceReferenceDate - p.currentItem.currentDate().timeIntervalSinceReferenceDate
+        let offsetSeconds = date.timeIntervalSinceReferenceDate - p.currentItem!.currentDate()!.timeIntervalSinceReferenceDate
         
         // we'll cheat and use time for short seeks, which seem to sometimes leave seekToDate stuck playing a loop
         if useTime || abs(offsetSeconds) < 60 {
-            let seek_time = CMTimeAdd(p.currentItem.currentTime(), CMTimeMakeWithSeconds(offsetSeconds, 1))
-            p.currentItem.seekToTime(seek_time, toleranceBefore:kCMTimeZero, toleranceAfter:kCMTimeZero, completionHandler:testLanding)
+            let seek_time = CMTimeAdd(p.currentItem!.currentTime(), CMTimeMakeWithSeconds(offsetSeconds, 1))
+            p.currentItem!.seekToTime(seek_time, toleranceBefore:kCMTimeZero, toleranceAfter:kCMTimeZero, completionHandler:testLanding)
         } else {
             // use seekToDate
-            p.currentItem.seekToDate(date, completionHandler:testLanding)
+            p.currentItem!.seekToDate(date, completionHandler:testLanding)
         }
 
         return true
@@ -606,8 +621,7 @@ public class AudioPlayer {
 
     public func seekToPercent(percent: Float64) -> Bool {
         // convert percent into a date and then just call seekToDate
-        var target:NSDate
-        
+ 
         let str_per = String(format:"%2f", percent)
         
         self._emitEvent("seekToPercent called for \(str_per)")
@@ -668,8 +682,8 @@ public class AudioPlayer {
             p.pause()
         }
 
-        p.currentItem.seekToTime(kCMTimePositiveInfinity) { finished in
-            self._emitEvent("seekToLive landed at \(self._dateFormat.stringFromDate(p.currentItem.currentDate()))")
+        p.currentItem!.seekToTime(kCMTimePositiveInfinity) { finished in
+            self._emitEvent("seekToLive landed at \(self._dateFormat.stringFromDate(p.currentItem!.currentDate()!))")
             p.play()
             
             completionHandler(finished)
