@@ -5,6 +5,12 @@
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="8142"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
+    <customFonts key="customFonts">
+        <mutableArray key="HelveticaNeueLights.ttc">
+            <string>HelveticaNeue-Thin</string>
+            <string>HelveticaNeue-Thin</string>
+        </mutableArray>
+    </customFonts>
     <scenes>
         <!--Player-->
         <scene sceneID="tne-QT-ifu">
@@ -205,7 +211,7 @@
         <!--Access Log-->
         <scene sceneID="kDR-Me-yxG">
             <objects>
-                <viewController id="lpP-za-YeU" customClass="AccessLogViewController" customModule="KPCCTestPlayer" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="lpP-za-YeU" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="C2H-WV-m45"/>
                         <viewControllerLayoutGuide type="bottom" id="AF2-3n-jM6"/>
@@ -413,7 +419,6 @@
                     </tabBar>
                     <connections>
                         <segue destination="BYZ-38-t0r" kind="relationship" relationship="viewControllers" id="MJw-cE-LLl"/>
-                        <segue destination="lpP-za-YeU" kind="relationship" relationship="viewControllers" id="Pqg-bT-jq7"/>
                         <segue destination="fn0-48-cy0" kind="relationship" relationship="viewControllers" id="pV1-KT-4sq"/>
                         <segue destination="W7Q-d7-Ciw" kind="relationship" relationship="viewControllers" id="uL3-Gh-kgc"/>
                     </connections>

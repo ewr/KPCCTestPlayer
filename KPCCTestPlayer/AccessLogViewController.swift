@@ -14,6 +14,7 @@ class AccessLogViewController: UIViewController {
     var eventCount:UInt8 = 0
     
     override func viewDidLoad() {
+        
         super.viewDidLoad()
         
         self._updateLog()

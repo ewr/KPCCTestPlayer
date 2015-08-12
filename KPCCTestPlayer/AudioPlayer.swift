@@ -11,6 +11,8 @@ import AVFoundation
 import Alamofire
 import MobileCoreServices
 
+//-----------
+
 public struct AudioPlayerObserver<T> {
     var observers: [(T) -> Void] = []
     
@@ -265,12 +267,19 @@ public class AudioPlayer {
             let item = AVPlayerItem(asset: asset)
             self._player = AVPlayer(playerItem: item)
             
-            // should we be limiting bandwidth?
-            if self.iOS8 && self.reduceBandwidthOnCellular && self._networkStatus == .Cellular {
-                self._emitEvent("Turning on bandwidth limiter for new player")
-                item.preferredPeakBitRate = 1000
+            // ios9 adds a feature to limit paused buffering
+            if #available(iOS 9.0, *) {
+                item.canUseNetworkResourcesForLiveStreamingWhilePaused = false
             }
             
+            // should we be limiting bandwidth?
+            if #available(iOS 8.0, *) {
+                if self.reduceBandwidthOnCellular && self._networkStatus == .Cellular {
+                self._emitEvent("Turning on bandwidth limiter for new player")
+                item.preferredPeakBitRate = 1000
+                }
+            }
+        
             // set up an observer for player / item status
             self._pobs = AVObserver(player:self._player!) { status,msg,obj in
                 //self._emitEvent(msg)
@@ -305,7 +314,7 @@ public class AudioPlayer {
                     }
                 case .AccessLog:
                     let log = obj as! AVPlayerItemAccessLogEvent
-                    self._emitEvent("New access log entry: indicated:\(log.indicatedBitrate) -- switch:\(log.switchBitrate) -- stalls: \(log.numberOfStalls)")
+                    self._emitEvent("New access log entry: indicated:\(log.indicatedBitrate) -- switch:\(log.switchBitrate) -- stalls: \(log.numberOfStalls) -- durationListened: \(log.durationWatched)")
                     
                     self.oAccessLog.notify(log)
                 case .ErrorLog:
@@ -314,7 +323,12 @@ public class AudioPlayer {
                     
                     self.oErrorLog.notify(log)
                 case .Playing:
-                    self._setStatus(.Playing)
+                    // we're hitting play as part of our seek operations, so don't 
+                    // pass on that status yet if .Seeking
+                    if self.status != .Seeking {
+                        self._setStatus(.Playing)
+                    }
+                    // self._setStatus(.Playing)
                 case .Paused:
                     // we pause as part of seeking, so don't pass on that status
                     if self.status != .Seeking {
@@ -335,8 +349,15 @@ public class AudioPlayer {
                         lastRecordedTime = "Unknown"
                     }
                     
-                    let newDate:String = self._dateFormat.stringFromDate(self._player!.currentItem!.currentDate()!)
+                    let curDate = self._player?.currentItem?.currentDate()
                     
+                    let newDate:String
+                    if curDate != nil {
+                        newDate = self._dateFormat.stringFromDate(curDate!)
+                    } else {
+                        newDate = "Unknown"
+                    }
+                                        
                     self._emitEvent("Time jump! Last recorded time: \(lastRecordedTime). New time: \(newDate)")
                 default:
                     true
@@ -547,12 +568,25 @@ public class AudioPlayer {
         }
 
         self._setStatus(.Seeking)
+        
+        // we need to start playing before any seek operations
+        // FIXME: Add volume management?
+        if p.rate != 1.0 {
+            self._emitEvent(fsig+"Hitting play before seeking")
+            p.play()
+        }
 
-        // we'll pause, seek, then play
+//        // we'll pause, seek, then play
 //        if p.rate != 0.0 {
 //            self._emitEvent(fsig+"Pausing to seek")
 //            p.pause()
 //        }
+        
+        let playFunc = { () -> Void in
+            // we're already "playing". Just change our status
+            // FIXME: Add volume manasgement?
+            self._setStatus(.Playing)
+        }
         
         // Set up common code for testing our landing position
         let testLanding = { (finished:Bool) -> Void in
@@ -565,14 +599,15 @@ public class AudioPlayer {
                 
                 if abs( Int(date.timeIntervalSinceReferenceDate - landed.timeIntervalSinceReferenceDate) ) <= self.seekTolerance {
                     // success! start playing
-                    p.play()
+                    self._emitEvent(fsig+"hitting play")
+                    playFunc()
                 } else {
                     // not quite... try again, as long as we have retries
                     if self._interactionIdx == seek_id {
                         switch retries {
                         case 0:
                             self._emitEvent("seekToDate ran out of retries. Playing from here.")
-                            p.play()
+                            playFunc()
                         case 1:
                             // last try always uses time
                             self.seekToDate(date, retries: retries-1, useTime:true)
@@ -606,8 +641,9 @@ public class AudioPlayer {
         let offsetSeconds = date.timeIntervalSinceReferenceDate - p.currentItem!.currentDate()!.timeIntervalSinceReferenceDate
         
         // we'll cheat and use time for short seeks, which seem to sometimes leave seekToDate stuck playing a loop
-        if useTime || abs(offsetSeconds) < 60 {
-            let seek_time = CMTimeAdd(p.currentItem!.currentTime(), CMTimeMakeWithSeconds(offsetSeconds, 1))
+        if useTime {//|| abs(offsetSeconds) < 60 {
+            let seek_time = CMTimeAdd(p.currentItem!.currentTime(), CMTimeMakeWithSeconds(offsetSeconds, 10))
+            self._emitEvent(fsig+"seeking \(offsetSeconds) seconds.")
             p.currentItem!.seekToTime(seek_time, toleranceBefore:kCMTimeZero, toleranceAfter:kCMTimeZero, completionHandler:testLanding)
         } else {
             // use seekToDate
