@@ -21,6 +21,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var sliderMode: UISwitch!
     @IBOutlet weak var variantLabel: UILabel!
     @IBOutlet weak var bufferLabel: UILabel!
+    @IBOutlet weak var limitBandwidth: UISwitch!
     
     var currentShow:Schedule.ScheduleInstance?
     var playingShow:Schedule.ScheduleInstance?
@@ -50,6 +51,9 @@ class ViewController: UIViewController {
         // disable the slider initially until we have a working player
         self.progressSlider.enabled = false
         self.sliderMode.enabled = false
+
+        self.limitBandwidth.enabled = true
+        self.limitBandwidth.on = false
         
         self.nowPlaying = NowPlayingInfo()
         
@@ -60,6 +64,8 @@ class ViewController: UIViewController {
         self.progressSlider.addTarget(self, action: "sliderPreview:", forControlEvents: UIControlEvents.ValueChanged)
         self.progressSlider.addTarget(self, action: "sliderUpdated:", forControlEvents: UIControlEvents.TouchUpInside)
         self.progressSlider.addTarget(self, action: "sliderUpdated:", forControlEvents: UIControlEvents.TouchUpOutside)
+
+        self.limitBandwidth.addTarget(self, action: "limitUpdated:", forControlEvents: UIControlEvents.ValueChanged)
         
         self._dateF.dateFormat = "YYYY-MM-dd hh:mm:ss"
         self._timeF.dateFormat = "h:mma"
@@ -409,6 +415,12 @@ class ViewController: UIViewController {
             // seek to percentage in the buffer
             AudioPlayer.sharedInstance.seekToPercent(fpercent)
         }
+    }
+
+    //----------
+
+    func limitUpdated(sender:UISwitch) {
+        AudioPlayer.sharedInstance.reduceAllBandwidth = sender.on
     }
 
 }

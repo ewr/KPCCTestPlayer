@@ -33,7 +33,7 @@ public class AudioPlayer {
     public static let sharedInstance = AudioPlayer()
 
     //----------
-    
+
     public enum NetworkStatus:String {
         case Unknown = "Unknown", NotReachable = "No Connection", WIFI = "WIFI", Cellular = "Cellular"
         
@@ -63,7 +63,7 @@ public class AudioPlayer {
     
     public enum Streams:String {
         case Production = "http://live.scpr.org/sg/kpcc-aac.m3u8?ua=KPCC-EWRTest"
-        case Testing    = "http://streammachine-test.scprdev.org:8020/sg/test.m3u8?ua=KPCC-EWRTest"
+        case Testing    = "http://streammachine-test.scprdev.org/sg/kpcc-hls.m3u8?ua=KPCC=EWRTest"
         
         func toString() -> String {
             return self.rawValue
@@ -134,9 +134,18 @@ public class AudioPlayer {
     
     // Configurable Settings
     public var seekTolerance:Int = 5
-    public var reduceBandwidthOnCellular:Bool = true
-    //public var trackSessions:Bool = true
-    
+
+    public var reduceBandwidthOnCellular:Bool = false {
+        didSet {
+            self._adjustBandwidth()
+        }
+    }
+    public var reduceAllBandwidth:Bool = false {
+        didSet {
+            self._adjustBandwidth()
+        }
+    }
+
     //let _assetLoader = AudioPlayerAssetLoader()
     let _reachability = Reachability.reachabilityForInternetConnection()
     var _networkStatus: NetworkStatus = .Unknown
@@ -212,26 +221,67 @@ public class AudioPlayer {
         self.oNetwork.addObserver() { s in
             if self.iOS8 && self.reduceBandwidthOnCellular {
                 if self._player?.currentItem != nil {
-                    switch s {
-                    case .Cellular:
-                        // turn limit on
-                        self._emitEvent("Limiting bandwidth on cellular.")
-                        self._player!.currentItem!.preferredPeakBitRate = 1000
-                    case .WIFI:
-                        // turn limit off
-                        self._emitEvent("Turning off bandwidth limit.")
-                        self._player!.currentItem!.preferredPeakBitRate = 0
-                    default:
-                        // don't make changes
-                        true
-                    }
+                    self._adjustBandwidth()
+//                    switch s {
+//                    case .Cellular:
+//                        // turn limit on
+//                        self._emitEvent("Limiting bandwidth on cellular.")
+//                        self._player!.currentItem!.preferredPeakBitRate = 1000
+//                    case .WIFI:
+//                        // turn limit off
+//                        self._emitEvent("Turning off bandwidth limit.")
+//                        self._player!.currentItem!.preferredPeakBitRate = 0
+//                    default:
+//                        // don't make changes
+//                        true
+//                    }
                 }
             }
         }
     }
-    
+
     //----------
-    
+
+    private func _adjustBandwidth() {
+        var setLow:Bool
+        var reason:String
+
+        if self.reduceAllBandwidth {
+            setLow = true
+            reason = "reduceAllBandwidth"
+        } else {
+            if self.reduceBandwidthOnCellular {
+
+                if self._networkStatus == .Cellular {
+                    setLow = true
+                    reason = "reduceBandwidthOnCellular (Cellular)"
+
+                } else {
+                    setLow = false
+                    reason = "reduceBandwidthOnCellular (WIFI)"
+                }
+            } else {
+                setLow = false
+                reason = "no reduce settings"
+            }
+        }
+
+        if setLow != self._lowBandwidth {
+            self._lowBandwidth = setLow
+            self._emitEvent("Setting lowBandwidth to \(setLow) because of \(reason)")
+        }
+
+        if let item = self._player?.currentItem {
+            if setLow {
+                item.preferredPeakBitRate = 1000
+            } else {
+                item.preferredPeakBitRate = 0
+            }
+        }
+    }
+
+    //----------
+
     private func setNetworkStatus() {
         var s:NetworkStatus
         
@@ -273,13 +323,8 @@ public class AudioPlayer {
             }
             
             // should we be limiting bandwidth?
-            if #available(iOS 8.0, *) {
-                if self.reduceBandwidthOnCellular && self._networkStatus == .Cellular {
-                self._emitEvent("Turning on bandwidth limiter for new player")
-                item.preferredPeakBitRate = 1000
-                }
-            }
-        
+            self._adjustBandwidth()
+
             // set up an observer for player / item status
             self._pobs = AVObserver(player:self._player!) { status,msg,obj in
                 //self._emitEvent(msg)
